@@ -1,0 +1,6 @@
+-c app.txt
+
+pytest
+pytest-flask
+pytest-sugar
+pytest-cov

@@ -1,0 +1,1 @@
+flexmeasures==0.8.0

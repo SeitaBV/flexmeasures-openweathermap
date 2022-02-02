@@ -24,13 +24,31 @@ except PackageNotFoundError:
     # package is not installed
     pass
 
+
+DEFAULT_FILE_PATH_LOCATION = "/../raw_data/weather-forecasts"
+DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
+
+__version__ = "0.1"
+__settings__ = {
+    "OPENWEATHERMAP_API_KEY": dict(
+        description="You can generate this token after you made an account at OpenWeatherMap.",
+        level="error",
+    ),
+    "OPENWEATHERMAP_DATA_SOURCE_NAME": dict(
+        description="Name of the data source for OWM data.",
+        default="OpenWeatherMap",
+        level="debug",
+    ),
+    "FILE_PATH_LOCATION": dict(
+        description="Location of JSON files (if you store weather data in this form). Absolute path.",
+        level="debug",
+    ),
+}
+
 # CLI
-flexmeasures_openweathermap_cli_bp: Blueprint = Blueprint(
-    "flexmeasures-openweathermap CLI",
-    __name__,
-    cli_group="flexmeasures-openweathermap"
+flexmeasures_openweathermap_bp: Blueprint = Blueprint(
+    "flexmeasures-openweathermap CLI", __name__, cli_group="owm"
 )
-flexmeasures_openweathermap_cli_bp.cli.help = "flexmeasures-openweathermap CLI commands"
+flexmeasures_openweathermap_bp.cli.help = "flexmeasures-openweathermap CLI commands"
 ensure_bp_routes_are_loaded_fresh("cli.commands")
 from flexmeasures_openweathermap.cli import commands  # noqa: E402,F401
-

@@ -1,14 +1,26 @@
-# flexmeasures-openweathermap - a plugin for FlexMeasures
-
+# flexmeasures-openweathermap - a plugin for FlexMeasures to integrate OpenWeatherMap data
 
 ## Usage
+
+To register a new weather sensor:
+
+`flexmeasures owm register-weather-sensor --name wind-speed --latitude 30 --longitude 40 --unit m/s`
+
+Notes about weather sensor setup: 
+
+- Weather sensors are public. They are accessible by all accounts on a FlexMeasures server. TODO: maybe limit this to a list of account roles.
+- The resolution is one hour. OWM also supports minutely data within the upcoming hour(s), but that is not supported here.
+
+To collect weather forecasts:
+
+TODO
 
 
 ## Installation
 
 1. Add "/path/to/flexmeasures-openweathermap/flexmeasures_openweathermap" to your FlexMeasures (>v0.7.0dev8) config file,
    using the FLEXMEASURES_PLUGINS setting (a list).
-   Alternatively, if you installed this plugin as a package, then "flexmeasures_openweathermap" suffices.
+   Alternatively, if you installed this plugin as a package (e.g. via `python setup.py install`, `pip install -e` or `pip install flexmeasures_openweathermap` after this project is on Pypi), then "flexmeasures_openweathermap" suffices.
 
 2.  
 

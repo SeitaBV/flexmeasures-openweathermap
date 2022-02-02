@@ -1,6 +1,5 @@
 import sys
 import importlib
-
 import os
 from typing import Tuple, List, Dict, Optional
 import json
@@ -11,7 +10,6 @@ from flask import Flask, current_app
 import requests
 import pytz
 from timely_beliefs import BeliefsDataFrame
-
 from flexmeasures.utils.time_utils import as_server_time, get_timezone
 from flexmeasures.utils.geo_utils import compute_irradiance
 from flexmeasures.data.services.resources import find_closest_sensor
@@ -20,20 +18,18 @@ from flexmeasures.data.transactional import task_with_status_report
 from flexmeasures.data.models.data_sources import DataSource
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
+from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
 
-FILE_PATH_LOCATION = "/../raw_data/weather-forecasts"
-DATA_SOURCE_NAME = "OpenWeatherMap"
+from flexmeasures_openweathermap import DEFAULT_FILE_PATH_LOCATION
+from flexmeasures_openweathermap import DEFAULT_DATA_SOURCE_NAME
 
 
 def make_file_path(app: Flask, region: str) -> str:
     """Ensure and return path for weather data"""
-    data_path = app.root_path + FILE_PATH_LOCATION
+    file_path = current_app.config.get("FILE_PATH_LOCATION", DEFAULT_FILE_PATH_LOCATION)
+    data_path = os.path.join(app.root_path, file_path)
     if not os.path.exists(data_path):
-        if os.path.exists(app.root_path + "/../raw_data"):
-            click.echo("[FLEXMEASURES] Creating %s ..." % data_path)
-            os.mkdir(data_path)
-        else:
-            raise Exception("No %s/../raw_data directory found." % app.root_path)
+        raise Exception(f"No {data_path} directory found.")
     # optional: extend with subpath for region
     if region is not None and region != "":
         region_data_path = "%s/%s" % (data_path, region)
@@ -46,11 +42,12 @@ def make_file_path(app: Flask, region: str) -> str:
 
 def get_data_source() -> DataSource:
     """Make sure we have a data source"""
+    source_name = current_app.config.get("DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME)
     data_source = DataSource.query.filter_by(
-        name=DATA_SOURCE_NAME, type="forecasting script"
+        name=source_name, type="forecasting script"
     ).one_or_none()
     if data_source is None:
-        data_source = DataSource(name=DATA_SOURCE_NAME, type="forecasting script")
+        data_source = DataSource(name=source_name, type="forecasting script")
         db.session.add(data_source)
     return data_source
 
@@ -73,11 +70,10 @@ def call_openweatherapi(
 
 
 def find_weather_sensor_by_location_or_fail(
-    weather_sensor: Sensor,
     location: Tuple[float, float],
     max_degree_difference_for_nearest_weather_sensor: int,
     flexmeasures_asset_type: str,
-) -> Optional[Sensor]:
+) -> Sensor:
     """
     Try to find a weather sensor of fitting type close by.
     Complain if the nearest weather sensor is further away than some minimum degrees.
@@ -155,7 +151,6 @@ def save_forecasts_in_db(
                     weather_sensor = weather_sensors.get(flexmeasures_asset_type, None)
                     if weather_sensor is None:
                         weather_sensor = find_weather_sensor_by_location_or_fail(
-                            weather_sensor,
                             location,
                             max_degree_difference_for_nearest_weather_sensor,
                             flexmeasures_asset_type,
@@ -270,7 +265,8 @@ def get_weather_forecasts(
     location_identifiers = tuple(location.split(":"))
 
     if len(location_identifiers) == 1:
-        locations = [tuple(float(s) for s in location_identifiers[0].split(","))]
+        ll = location_identifiers[0].split(",")
+        locations = [(float(ll[0]), float(ll[1]))]
         click.echo("[FLEXMEASURES] Only one location: %s,%s." % locations[0])
     elif len(location_identifiers) == 2:
         click.echo(
@@ -299,7 +295,7 @@ def get_weather_forecasts(
     else:
         raise Exception("location parameter '%s' has too many locations." % location)
 
-    api_key = app.config.get("OPENWEATHERMAP_API_KEY")
+    api_key = str(app.config.get("OPENWEATHERMAP_API_KEY"))
 
     # Save the results
     if store_in_db:
@@ -309,16 +305,17 @@ def get_weather_forecasts(
             api_key, locations, data_path=make_file_path(app, region)
         )
 
+
 def ensure_bp_routes_are_loaded_fresh(module_name):
     """
     Reload a module if it has been loaded before.
     It's useful for situations in which some other process has read
     the module before, but you need some action to happen which only
     happens during module import ― decorators are a good example.
-    
+
     One use case is pytest, which reads all python code when it collects tests.
     In our case, that happens before FlexMeasures' import mechanism
-    has had a chance to know which blueprints a plugin has. And 
+    has had a chance to know which blueprints a plugin has. And
     Seemingly, the importing code (plugin's __init__) can be imported later
     than the imported module (containing @route decorators).
     Re-importing helps to get this order right when FlexMeasures reads the

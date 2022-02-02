@@ -1,33 +1,20 @@
-from flask import current_app
+from datetime import timedelta
+
 from flask.cli import with_appcontext
 import click
-from flexmeasures.data.transactional import task_with_status_report
+from flexmeasures.data.models.time_series import Sensor
 
-from .. import flexmeasures_openweathermap_cli_bp
+# from flexmeasures.data.transactional import task_with_status_report
+from flexmeasures.data.config import db
 
-
-@flexmeasures_openweathermap_cli_bp.cli.command("hello-world")
-@click.option(
-    "--name",
-)
-@with_appcontext
-@task_with_status_report
-def hello_world(name: str):
-    print(f"Hello, {name}!")
-    current_app.logger.info(f"'Hello, {name}!' printed")
+from .. import flexmeasures_openweathermap_bp
+from .schemas.weather_sensor import WeatherSensorSchema
 
 
-
-@fm_add_data.command("weather-sensor")
+@flexmeasures_openweathermap_bp.cli.command("register-weather-sensor")
 @with_appcontext
 @click.option("--name", required=True)
 @click.option("--unit", required=True, help="e.g. °C, m/s, kW/m²")
-@click.option(
-    "--event-resolution",
-    required=True,
-    type=int,
-    help="Expected resolution of the data in minutes",
-)
 @click.option(
     "--latitude",
     required=True,
@@ -48,23 +35,34 @@ def hello_world(name: str):
 def add_weather_sensor(**args):
     """
     Add a weather sensor.
-    This is legacy, after we moved to the new data model.
-    Adding necessary GenericAsset and Sensor(s) should be done by the (to be built) OWM plugin.
+    This will first create a weather station asset if none exists at the location yet.
+
+    TODO: allow to add seasonality (daily, yearly) and save as Sensor attributes.
+    TODO: allow to also pass an asset ID for the weather station (instead of location)?
     """
-    check_timezone(args["timezone"])
-    check_errors(WeatherSensorSchema().validate(args))
-    args["event_resolution"] = timedelta(minutes=args["event_resolution"])
-    sensor = WeatherSensor(**args)
+    errors = WeatherSensorSchema().validate(args)
+    if errors:
+        print(
+            f"Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
+        )
+        raise click.Abort
+
+    args["event_resolution"] = timedelta(minutes=60)
+    # TODO: make sure we have a weather station
+    sensor = Sensor(**args)  # TODO: without location and seasonality
+
+    # TODO: check name is unique in weather station
+    # TODO: add seasonality attributes
     db.session.add(sensor)
     db.session.commit()
     print(f"Successfully created weather sensor with ID {sensor.id}")
     print(f" You can access it at its entity address {sensor.entity_address}")
 
 
-
-
-@fm_add_data.command("external-weather-forecasts")
+'''
+@flexmeasures_openweathermap_bp.cli.command("get-weather-forecasts")
 @with_appcontext
+@task_with_status_report("get-openweathermap-forecasts")
 @click.option(
     "--region",
     type=str,
@@ -109,4 +107,4 @@ def collect_weather_data(region, location, num_cells, method, store_in_db):
     from flexmeasures.data.scripts.grid_weather import get_weather_forecasts
 
     get_weather_forecasts(app, region, location, num_cells, method, store_in_db)
-
+'''

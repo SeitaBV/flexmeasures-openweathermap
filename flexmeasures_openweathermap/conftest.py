@@ -2,7 +2,7 @@ import pytest
 
 from flexmeasures.app import create as create_flexmeasures_app
 
-from flexmeasures.conftest import db  # noqa: F401
+from flexmeasures.conftest import db, fresh_db  # noqa: F401
 
 
 @pytest.fixture(scope="session")

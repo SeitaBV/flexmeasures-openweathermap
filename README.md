@@ -13,7 +13,13 @@ Notes about weather sensor setup:
 
 To collect weather forecasts:
 
-TODO
+TODO: add weather forecasts to the database
+
+TODO: alternative usage: save raw results in JSON files (for later processing)
+
+    
+Note that 1000 free calls per day can be made to the OpenWeatherMap API,
+so we can make a call every 15 minutes for up to 10 assets or every hour for up to 40 assets (or get a paid account).
 
 
 ## Installation

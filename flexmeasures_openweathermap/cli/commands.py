@@ -9,6 +9,10 @@ from flexmeasures.data.config import db
 
 from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
+from ..utils.modeling import get_weather_station
+
+# from ..utils.filing import make_file_path
+# from ..utils.owm import save_forecasts_in_db, save_forecasts_as_json
 
 
 @flexmeasures_openweathermap_bp.cli.command("register-weather-sensor")
@@ -47,9 +51,13 @@ def add_weather_sensor(**args):
         )
         raise click.Abort
 
+    weather_station = get_weather_station(args["latitude"], args["longitude"])
+    args["generic_asset"] = weather_station
+    del args["latitude"]
+    del args["longitude"]
+
     args["event_resolution"] = timedelta(minutes=60)
-    # TODO: make sure we have a weather station
-    sensor = Sensor(**args)  # TODO: without location and seasonality
+    sensor = Sensor(**args)  # TODO: without seasonality
 
     # TODO: check name is unique in weather station
     # TODO: add seasonality attributes
@@ -64,12 +72,6 @@ def add_weather_sensor(**args):
 @with_appcontext
 @task_with_status_report("get-openweathermap-forecasts")
 @click.option(
-    "--region",
-    type=str,
-    default="",
-    help="Name of the region (will create sub-folder if you store json files, should later probably tag the forecast in the DB).",
-)
-@click.option(
     "--location",
     type=str,
     required=True,
@@ -77,6 +79,11 @@ def add_weather_sensor(**args):
     'bottom-right-latitude,bottom-right-longitude." The first format defines one location to measure.'
     " The second format defines a region of interest with several (>=4) locations"
     ' (see also the "method" and "num_cells" parameters for this feature).',
+)
+@click.option(
+    "--store-in-db/--store-as-json-files",
+    default=True,
+    help="Store forecasts in the database, or simply save as json files (defaults to database).",
 )
 @click.option(
     "--num_cells",
@@ -91,20 +98,31 @@ def add_weather_sensor(**args):
     help="Grid creation method. Only used if a region of interest has been mapped in the location parameter.",
 )
 @click.option(
-    "--store-in-db/--store-as-json-files",
-    default=False,
-    help="Store forecasts in the database, or simply save as json files. (defaults to json files)",
+    "--region",
+    type=str,
+    default="",
+    help="Name of the region (will create sub-folder if you store json files, should later probably tag the forecast in the DB).",
 )
-def collect_weather_data(region, location, num_cells, method, store_in_db):
+def collect_weather_data(location, store_in_db, num_cells, method, region):
     """
     Collect weather forecasts from the OpenWeatherMap API
 
     This function can get weather data for one location or for several locations within
     a geometrical grid (See the --location parameter).
-
-    This should move to a FlexMeasures plugin for OWM integration.
     """
-    from flexmeasures.data.scripts.grid_weather import get_weather_forecasts
 
-    get_weather_forecasts(app, region, location, num_cells, method, store_in_db)
+    api_key = str(app.config.get("OPENWEATHERMAP_API_KEY"))
+    if api_key is None:
+        raise Exception("Setting OPENWEATHERMAP_API_KEY not available.")
+    locations = get_locations(location, num_cells, method)
+
+    # Save the results
+    if store_in_db:
+        save_forecasts_in_db(api_key, locations, data_source=get_data_source())
+    else:
+        save_forecasts_as_json(
+            api_key, locations, data_path=make_file_path(app, region)
+        )
+
+
 '''

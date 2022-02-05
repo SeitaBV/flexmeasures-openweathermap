@@ -12,7 +12,7 @@ from importlib_metadata import version, PackageNotFoundError
 
 from flask import Blueprint
 
-from .utils import ensure_bp_routes_are_loaded_fresh
+from .utils.blueprinting import ensure_bp_routes_are_loaded_fresh
 
 # Overwriting version (if possible) from the package metadata
 # ― if this plugin has been installed as a package.
@@ -25,8 +25,10 @@ except PackageNotFoundError:
     pass
 
 
-DEFAULT_FILE_PATH_LOCATION = "/../raw_data/weather-forecasts"
+DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
 DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
+WEATHER_STATION_TYPE_NAME = "Weather Station"
+DEFAULT_WEATHER_STATION_NAME = "Weather Station (created by FM-OWM)"
 
 __version__ = "0.1"
 __settings__ = {
@@ -41,6 +43,14 @@ __settings__ = {
     ),
     "FILE_PATH_LOCATION": dict(
         description="Location of JSON files (if you store weather data in this form). Absolute path.",
+        level="debug",
+    ),
+    "DATA_SOURCE_NAME": dict(
+        description=f"Name of the data source, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
+        level="debug",
+    ),
+    "WEATHER_STATION_NAME": dict(
+        description=f"Name of the weather station asset, defaults to '{DEFAULT_WEATHER_STATION_NAME}'",
         level="debug",
     ),
 }

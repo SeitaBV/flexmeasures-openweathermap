@@ -1,4 +1,5 @@
 from datetime import timedelta
+from flask import current_app
 
 from flask.cli import with_appcontext
 import click
@@ -8,45 +9,55 @@ from flexmeasures.data.models.time_series import Sensor
 from flexmeasures.data.config import db
 
 from .. import flexmeasures_openweathermap_bp
-from .schemas.weather_sensor import WeatherSensorSchema
+from .schemas.weather_sensor import (
+    WeatherSensorSchema,
+    owm_to_sensor_map,
+    get_supported_sensor_spec,
+)
 from ..utils.modeling import get_weather_station
 
 # from ..utils.filing import make_file_path
 # from ..utils.owm import save_forecasts_in_db, save_forecasts_as_json
 
 
+supported_sensors_list = ", ".join([str(o["name"]) for o in owm_to_sensor_map.values()])
+
+
 @flexmeasures_openweathermap_bp.cli.command("register-weather-sensor")
 @with_appcontext
-@click.option("--name", required=True)
-@click.option("--unit", required=True, help="e.g. °C, m/s, kW/m²")
+@click.option(
+    "--name",
+    required=True,
+    help=f"Name of the sensor. Has to be from the supported list ({supported_sensors_list})",
+)
+# @click.option("--generic-asset-id", required=False, help="The asset id of the weather station (you can also give its location).")
 @click.option(
     "--latitude",
     required=True,
     type=float,
-    help="Latitude of the sensor's location",
+    help="Latitude of where you want to measure.",
 )
 @click.option(
     "--longitude",
     required=True,
     type=float,
-    help="Longitude of the sensor's location",
+    help="Longitude of where you want to measure.",
 )
 @click.option(
     "--timezone",
     default="UTC",
-    help="timezone as string, e.g. 'UTC' (default) or 'Europe/Amsterdam'",
+    help="The timezone of the sensor data as string, e.g. 'UTC' (default) or 'Europe/Amsterdam'",
 )
 def add_weather_sensor(**args):
     """
     Add a weather sensor.
     This will first create a weather station asset if none exists at the location yet.
 
-    TODO: allow to add seasonality (daily, yearly) and save as Sensor attributes.
     TODO: allow to also pass an asset ID for the weather station (instead of location)?
     """
     errors = WeatherSensorSchema().validate(args)
     if errors:
-        print(
+        current_app.logger.error(
             f"Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
         )
         raise click.Abort
@@ -56,15 +67,21 @@ def add_weather_sensor(**args):
     del args["latitude"]
     del args["longitude"]
 
-    args["event_resolution"] = timedelta(minutes=60)
-    sensor = Sensor(**args)  # TODO: without seasonality
+    args["event_resolution"] = timedelta(minutes=60)  # OWM delivers hourly data
 
-    # TODO: check name is unique in weather station
-    # TODO: add seasonality attributes
+    fm_sensor_specs = get_supported_sensor_spec(args["name"])
+    args["unit"] = fm_sensor_specs["unit"]
+    sensor = Sensor(**args)
+    sensor.attributes = fm_sensor_specs["seasonality"]
+
     db.session.add(sensor)
     db.session.commit()
-    print(f"Successfully created weather sensor with ID {sensor.id}")
-    print(f" You can access it at its entity address {sensor.entity_address}")
+    current_app.logger.info(
+        f"Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
+    )
+    current_app.logger.info(
+        f"You can access this sensor at its entity address {sensor.entity_address}"
+    )
 
 
 '''

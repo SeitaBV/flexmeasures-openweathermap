@@ -10,7 +10,7 @@ from ..commands import add_weather_sensor
 Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli-commands
 """
 
-sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40, "unit": "m/s"}
+sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40}
 
 
 def cli_params_from_dict(d) -> List[str]:
@@ -24,10 +24,9 @@ def cli_params_from_dict(d) -> List[str]:
 @pytest.mark.parametrize(
     "invalid_param, invalid_value, expected_msg",
     [
-        ("timezone", "Erope/Amsterdam", "is unknown"),
+        ("name", "windd-speed", "not supported by flexmeasures-openweathermap"),
         ("latitude", 93, "less than or equal to 90"),
-        ("unit", "not-a-valid-unit", "cannot be handled"),
-        ("unit", "kWh", "not supported"),  # not in combinaton with wind_speed
+        ("timezone", "Erope/Amsterdam", "is unknown"),
     ],
 )
 def test_register_weather_sensor_invalid_data(

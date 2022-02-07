@@ -96,7 +96,7 @@ class WeatherSensorSchema(Schema):
         ).one_or_none()
         if sensor:
             raise ValidationError(
-                f"A weather sensor with the name {data['name']} already exists."
+                f"A '{data['name']}' - weather sensor already exists at this weather station (with ID {weather_station.id}))."
             )
 
     @validates("timezone")

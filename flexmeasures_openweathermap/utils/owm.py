@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional
 import os
 from datetime import datetime
 import json
@@ -14,6 +14,55 @@ from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
 from .locating import find_weather_sensor_by_location_or_fail
+
+
+# This maps sensor name/unit pairs we can use in FlexMeasures to OWM labels.
+# We also store seasonality attributes here.
+# Of course, the sensor names we use in FM need to be unique.
+owm_to_sensor_map = dict(
+    temp={
+        "name": "temperature",
+        "unit": "°C",
+        "seasonality": {
+            "daily_seasonality": True,
+            "weekly_seasonality": False,
+            "yearly_seasonality": True,
+        },
+    },
+    wind_speed={
+        "name": "wind_speed",
+        "unit": "m/s",
+        "seasonality": {
+            "daily_seasonality": True,
+            "weekly_seasonality": False,
+            "yearly_seasonality": True,
+        },
+    },
+    clouds={
+        "name": "radiation",
+        "unit": "kW/m²",
+        "seasonality": {
+            "daily_seasonality": True,
+            "weekly_seasonality": False,
+            "yearly_seasonality": True,
+        },
+    },
+)
+
+
+def get_supported_sensor_spec(name: str) -> Optional[dict]:
+    """
+    Find the specs from a sensor by name.
+    """
+    for supported_sensor_spec in owm_to_sensor_map.values():
+        if supported_sensor_spec["name"] == name:
+            return supported_sensor_spec
+    return None
+
+
+def get_supported_sensors_str() -> str:
+    """ A string - list of supported sensors, also revealing their unit"""
+    return ", ".join([f"{o['name']} ({o['unit']})" for o in owm_to_sensor_map.values()])
 
 
 def call_openweatherapi(
@@ -48,23 +97,18 @@ def save_forecasts_in_db(
     click.echo("[FLEXMEASURES] Getting weather forecasts:")
     click.echo("[FLEXMEASURES]  Latitude, Longitude")
     click.echo("[FLEXMEASURES] -----------------------")
-    weather_sensors: Dict[str, Sensor] = {}  # keep track of the sensors to save lookups
-    db_forecasts: Dict[Sensor, List[TimedBelief]] = {}  # collect beliefs per sensor
 
     for location in locations:
         click.echo("[FLEXMEASURES] %s, %s" % location)
+        weather_sensors: Dict[
+            str, Sensor
+        ] = {}  # keep track of the sensors to save lookups
+        db_forecasts: Dict[Sensor, List[TimedBelief]] = {}  # collect beliefs per sensor
 
         time_of_api_call, forecasts = call_openweatherapi(api_key, location)
         click.echo(
             "[FLEXMEASURES] Called OpenWeatherMap API successfully at %s."
             % time_of_api_call
-        )
-
-        # map asset type name in our db to sensor name/label in OWM response
-        # TODO: This needs a supported set of sensors (names and units)
-        #       move this map to a central place
-        asset_type_to_OWM_sensor_mapping = dict(
-            temperature="temp", wind_speed="wind_speed", radiation="clouds"
         )
 
         # loop through forecasts, including the one of current hour (horizon 0)
@@ -77,31 +121,30 @@ def save_forecasts_in_db(
                 "[FLEXMEASURES] Processing forecast for %s (horizon: %s) ..."
                 % (fc_datetime, fc_horizon)
             )
-            for flexmeasures_asset_type in asset_type_to_OWM_sensor_mapping.keys():
-                needed_response_label = asset_type_to_OWM_sensor_mapping[
-                    flexmeasures_asset_type
-                ]
-                if needed_response_label in fc:
-                    weather_sensor = weather_sensors.get(flexmeasures_asset_type, None)
-                    if weather_sensor is None:
+            for owm_response_label in owm_to_sensor_map:
+                sensor_name = str(owm_to_sensor_map[owm_response_label]["name"])
+                if owm_response_label in fc:
+                    if sensor_name in weather_sensors:
+                        weather_sensor = weather_sensors[sensor_name]
+                    else:
                         weather_sensor = find_weather_sensor_by_location_or_fail(
                             location,
                             max_degree_difference_for_nearest_weather_sensor,
-                            flexmeasures_asset_type,
+                            sensor_name=sensor_name,
                         )
-                    weather_sensors[flexmeasures_asset_type] = weather_sensor
+                        weather_sensors[sensor_name] = weather_sensor
                     if weather_sensor not in db_forecasts.keys():
                         db_forecasts[weather_sensor] = []
 
-                    fc_value = fc[needed_response_label]
+                    fc_value = fc[owm_response_label]
                     # the radiation is not available in OWM -> we compute it ourselves
-                    if flexmeasures_asset_type == "radiation":
+                    if sensor_name == "radiation":
                         fc_value = compute_irradiance(
                             location[0],
                             location[1],
                             fc_datetime,
                             # OWM sends cloud coverage in percent, we need a ratio
-                            fc[needed_response_label] / 100.0,
+                            fc_value / 100.0,
                         )
 
                     db_forecasts[weather_sensor].append(
@@ -116,7 +159,7 @@ def save_forecasts_in_db(
                 else:
                     # we will not fail here, but issue a warning
                     msg = "No label '%s' in response data for time %s" % (
-                        needed_response_label,
+                        owm_response_label,
                         fc_datetime,
                     )
                     click.echo("[FLEXMEASURES] %s" % msg)

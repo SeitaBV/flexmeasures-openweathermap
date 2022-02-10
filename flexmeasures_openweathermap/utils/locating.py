@@ -3,8 +3,10 @@ from typing import Tuple, List, Optional
 import click
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
-from flexmeasures.data.services.resources import find_closest_sensor
 from flexmeasures.data.models.time_series import Sensor
+from flexmeasures.data.models.generic_assets import GenericAsset
+
+from .. import WEATHER_STATION_TYPE_NAME
 
 
 def get_locations(
@@ -13,9 +15,8 @@ def get_locations(
     method: str,
 ) -> List[Tuple[float, float]]:
     """
-    Get locations for getting forecasrs for, by parsing the location string, which possibly opens a latitude/longitude grid with several neatly ordered locations.
+    Get locations for getting forecasts for, by parsing the location string, which possibly opens a latitude/longitude grid with several neatly ordered locations.
     """
-
     if (
         location.count(",") == 0
         or location.count(",") != location.count(":") + 1
@@ -69,28 +70,32 @@ def get_locations(
 def find_weather_sensor_by_location_or_fail(
     location: Tuple[float, float],
     max_degree_difference_for_nearest_weather_sensor: int,
-    flexmeasures_asset_type: str,
+    sensor_name: str,
 ) -> Sensor:
     """
     Try to find a weather sensor of fitting type close by.
     Complain if the nearest weather sensor is further away than some minimum degrees.
     """
-    weather_sensor: Optional[Sensor] = find_closest_sensor(
-        flexmeasures_asset_type, lat=location[0], lng=location[1]
+    weather_sensor: Optional[Sensor] = Sensor.find_closest(
+        generic_asset_type_name=WEATHER_STATION_TYPE_NAME,
+        sensor_name=sensor_name,
+        lat=location[0],
+        lng=location[1],
     )
     if weather_sensor is not None:
+        weather_station: GenericAsset = weather_sensor.generic_asset
         if abs(
-            location[0] - weather_sensor.location[0]
+            location[0] - weather_station.location[0]
         ) > max_degree_difference_for_nearest_weather_sensor or abs(
-            location[1] - weather_sensor.location[1]
+            location[1] - weather_station.location[1]
             > max_degree_difference_for_nearest_weather_sensor
         ):
             raise Exception(
-                f"No sufficiently close weather sensor found (within 2 degrees distance) for type {flexmeasures_asset_type}! We're looking for: {location}, closest available: ({weather_sensor.location})"
+                f"No sufficiently close weather sensor found (within 2 degrees distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:
         raise Exception(
-            "No weather sensor set up for this sensor type (%s)"
-            % flexmeasures_asset_type
+            "No weather sensor set up yet for measuring %s. Try the register-weather-sensor CLI task."
+            % sensor_name
         )
     return weather_sensor

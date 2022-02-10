@@ -1,4 +1,3 @@
-from typing import Optional
 from marshmallow import (
     Schema,
     validates,
@@ -13,60 +12,12 @@ from flexmeasures.data.models.time_series import Sensor
 from flexmeasures.data import db
 
 from ...utils.modeling import get_weather_station
-
-
-# This maps sensor name/unit pairs we can use in FlexMeasures to OWM labels.
-# We also store seasonality attributes here.
-# Of course, the sesnor names we use in FM need to be unique.
-owm_to_sensor_map = dict(
-    temp={
-        "name": "temperature",
-        "unit": "°C",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-    wind_speed={
-        "name": "wind_speed",
-        "unit": "m/s",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-    clouds={
-        "name": "radiation",
-        "unit": "kW/m²",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-)
-
-
-def get_supported_sensor_spec(name: str) -> Optional[dict]:
-    """
-    Find the specs from a sensor by name.
-    """
-    for supported_sensor_spec in owm_to_sensor_map.values():
-        if supported_sensor_spec["name"] == name:
-            return supported_sensor_spec
-    return None
-
-
-def get_supported_sensors_str() -> str:
-    """ A string - list of supported sensors, also revelaing their unit"""
-    return ", ".join([f"{o['name']} ({o['unit']})" for o in owm_to_sensor_map.values()])
+from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str
 
 
 class WeatherSensorSchema(Schema):
     """
-    Schema for the weather sennsor registration.
+    Schema for the weather sensor registration.
     Based on flexmeasures.Sensor, plus some attributes for the weather station asset.
     """
 

@@ -5,20 +5,25 @@ from flask.cli import with_appcontext
 import click
 from flexmeasures.data.models.time_series import Sensor
 
-# from flexmeasures.data.transactional import task_with_status_report
+from flexmeasures.data.transactional import task_with_status_report
 from flexmeasures.data.config import db
 
 from .. import flexmeasures_openweathermap_bp
-from .schemas.weather_sensor import (
-    WeatherSensorSchema,
+from .schemas.weather_sensor import WeatherSensorSchema
+from ..utils.modeling import get_weather_station, get_data_source
+from ..utils.locating import get_locations
+from ..utils.filing import make_file_path
+from ..utils.owm import (
+    save_forecasts_in_db,
+    save_forecasts_as_json,
     owm_to_sensor_map,
     get_supported_sensor_spec,
 )
-from ..utils.modeling import get_weather_station
 
-# from ..utils.filing import make_file_path
-# from ..utils.owm import save_forecasts_in_db, save_forecasts_as_json
 
+"""
+TODO: allow to also pass an asset ID for the weather station (instead of location) to both commands?
+"""
 
 supported_sensors_list = ", ".join([str(o["name"]) for o in owm_to_sensor_map.values()])
 
@@ -53,7 +58,6 @@ def add_weather_sensor(**args):
     Add a weather sensor.
     This will first create a weather station asset if none exists at the location yet.
 
-    TODO: allow to also pass an asset ID for the weather station (instead of location)?
     """
     errors = WeatherSensorSchema().validate(args)
     if errors:
@@ -76,18 +80,16 @@ def add_weather_sensor(**args):
 
     db.session.add(sensor)
     db.session.commit()
-    current_app.logger.info(
+    click.echo(
         f"Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
     )
-    current_app.logger.info(
+    click.echo(
         f"You can access this sensor at its entity address {sensor.entity_address}"
     )
 
 
-'''
 @flexmeasures_openweathermap_bp.cli.command("get-weather-forecasts")
 @with_appcontext
-@task_with_status_report("get-openweathermap-forecasts")
 @click.option(
     "--location",
     type=str,
@@ -95,7 +97,7 @@ def add_weather_sensor(**args):
     help='Measurement location(s). "latitude,longitude" or "top-left-latitude,top-left-longitude:'
     'bottom-right-latitude,bottom-right-longitude." The first format defines one location to measure.'
     " The second format defines a region of interest with several (>=4) locations"
-    ' (see also the "method" and "num_cells" parameters for this feature).',
+    ' (see also the "method" and "num_cells" parameters for details on how to use this feature).',
 )
 @click.option(
     "--store-in-db/--store-as-json-files",
@@ -118,17 +120,19 @@ def add_weather_sensor(**args):
     "--region",
     type=str,
     default="",
-    help="Name of the region (will create sub-folder if you store json files, should later probably tag the forecast in the DB).",
+    help="Name of the region (will create sub-folder if you store json files).",
 )
+@task_with_status_report("get-openweathermap-forecasts")
 def collect_weather_data(location, store_in_db, num_cells, method, region):
     """
-    Collect weather forecasts from the OpenWeatherMap API
+    Collect weather forecasts from the OpenWeatherMap API.
+    This will be done for one or more locations, for which we first identify relevant weather stations.
 
     This function can get weather data for one location or for several locations within
     a geometrical grid (See the --location parameter).
     """
 
-    api_key = str(app.config.get("OPENWEATHERMAP_API_KEY"))
+    api_key = str(current_app.config.get("OPENWEATHERMAP_API_KEY"))
     if api_key is None:
         raise Exception("Setting OPENWEATHERMAP_API_KEY not available.")
     locations = get_locations(location, num_cells, method)
@@ -138,8 +142,5 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
         save_forecasts_in_db(api_key, locations, data_source=get_data_source())
     else:
         save_forecasts_as_json(
-            api_key, locations, data_path=make_file_path(app, region)
+            api_key, locations, data_path=make_file_path(current_app, region)
         )
-
-
-'''

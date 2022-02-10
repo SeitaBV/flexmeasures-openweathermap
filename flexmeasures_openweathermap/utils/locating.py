@@ -81,6 +81,7 @@ def find_weather_sensor_by_location_or_fail(
         sensor_name=sensor_name,
         lat=location[0],
         lng=location[1],
+        n=1,
     )
     if weather_sensor is not None:
         weather_station: GenericAsset = weather_sensor.generic_asset

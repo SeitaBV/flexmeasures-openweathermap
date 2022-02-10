@@ -79,3 +79,4 @@ dmypy.json
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
 
+flexmeasures.log

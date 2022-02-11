@@ -11,7 +11,8 @@ def make_file_path(app: Flask, region: str) -> str:
     file_path = current_app.config.get("FILE_PATH_LOCATION", DEFAULT_FILE_PATH_LOCATION)
     data_path = os.path.join(app.root_path, file_path)
     if not os.path.exists(data_path):
-        raise Exception(f"No {data_path} directory found.")
+        click.echo("[FLEXMEASURES] Creating %s ..." % data_path)
+        os.mkdir(data_path)
     # optional: extend with subpath for region
     if region is not None and region != "":
         region_data_path = "%s/%s" % (data_path, region)

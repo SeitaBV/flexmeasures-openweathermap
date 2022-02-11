@@ -14,10 +14,12 @@ Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli
 sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40}
 
 
-def test_get_weather_forecasts_to_db(app, db, monkeypatch, register_weather_sensors):
+def test_get_weather_forecasts_to_db(
+    app, fresh_db, monkeypatch, add_weather_sensors_fresh_db
+):
     """ Test if we can process forecast and save them to the database."""
-    db.session.flush()
-    wind_sensor_id = register_weather_sensors["wind_speed"].id
+    fresh_db.session.flush()
+    wind_sensor_id = add_weather_sensors_fresh_db["wind"].id
 
     def mock_owm_response(api_key, location):
         mock_date = datetime.now()
@@ -42,7 +44,7 @@ def test_get_weather_forecasts_to_db(app, db, monkeypatch, register_weather_sens
     assert "Reported task get-openweathermap-forecasts status as True" in result.output
 
     beliefs = (
-        db.session.query(TimedBelief)
+        fresh_db.session.query(TimedBelief)
         .filter(TimedBelief.sensor_id == wind_sensor_id)
         .all()
     )

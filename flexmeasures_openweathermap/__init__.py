@@ -27,8 +27,8 @@ except PackageNotFoundError:
 
 DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
 DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
-WEATHER_STATION_TYPE_NAME = "Weather Station"
-DEFAULT_WEATHER_STATION_NAME = "Weather Station (created by FM-OWM)"
+WEATHER_STATION_TYPE_NAME = "Weather station"
+DEFAULT_WEATHER_STATION_NAME = "Weather station (created by FM-OWM)"
 
 __version__ = "0.1"
 __settings__ = {

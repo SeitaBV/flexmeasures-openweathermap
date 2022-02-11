@@ -61,7 +61,7 @@ def add_weather_sensor(**args):
     """
     errors = WeatherSensorSchema().validate(args)
     if errors:
-        current_app.logger.error(
+        click.echo(
             f"Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
         )
         raise click.Abort

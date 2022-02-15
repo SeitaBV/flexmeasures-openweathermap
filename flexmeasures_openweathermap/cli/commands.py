@@ -11,7 +11,6 @@ from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
-    get_or_create_owm_data_source,
 )
 from ..utils.locating import get_locations
 from ..utils.filing import make_file_path
@@ -142,9 +141,7 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
 
     # Save the results
     if store_in_db:
-        save_forecasts_in_db(
-            api_key, locations, data_source=get_or_create_owm_data_source()
-        )
+        save_forecasts_in_db(api_key, locations)
     else:
         save_forecasts_as_json(
             api_key, locations, data_path=make_file_path(current_app, region)

@@ -10,12 +10,15 @@ from humanize import naturaldelta
 from timely_beliefs import BeliefsDataFrame
 from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_now
 from flexmeasures.utils.geo_utils import compute_irradiance
-from flexmeasures.data.models.data_sources import DataSource
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
 from .locating import find_weather_sensor_by_location_or_fail
 from ..sensor_specs import owm_to_sensor_map
+from .modeling import (
+    get_or_create_owm_data_source,
+    get_or_create_owm_data_source_for_derived_data,
+)
 
 
 def get_supported_sensor_spec(name: str) -> Optional[dict]:
@@ -56,7 +59,6 @@ def call_openweatherapi(
 def save_forecasts_in_db(
     api_key: str,
     locations: List[Tuple[float, float]],
-    data_source: DataSource,
     max_degree_difference_for_nearest_weather_sensor: int = 2,
 ):
     """Process the response from OpenWeatherMap API into timed beliefs.
@@ -91,6 +93,7 @@ def save_forecasts_in_db(
             )
             click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
             for owm_response_label in owm_to_sensor_map:
+                data_source = get_or_create_owm_data_source()
                 sensor_name = str(owm_to_sensor_map[owm_response_label]["name"])
                 if owm_response_label in fc:
                     if sensor_name in weather_sensors:
@@ -106,6 +109,7 @@ def save_forecasts_in_db(
                         db_forecasts[weather_sensor] = []
 
                     fc_value = fc[owm_response_label]
+
                     # the radiation is not available in OWM -> we compute it ourselves
                     if sensor_name == "radiation":
                         fc_value = compute_irradiance(
@@ -115,6 +119,7 @@ def save_forecasts_in_db(
                             # OWM sends cloud coverage in percent, we need a ratio
                             fc_value / 100.0,
                         )
+                        data_source = get_or_create_owm_data_source_for_derived_data()
 
                     db_forecasts[weather_sensor].append(
                         TimedBelief(

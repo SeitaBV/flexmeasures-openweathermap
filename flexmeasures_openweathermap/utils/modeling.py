@@ -19,6 +19,16 @@ def get_or_create_owm_data_source() -> DataSource:
     )
 
 
+def get_or_create_owm_data_source_for_derived_data() -> DataSource:
+    owm_source_name = current_app.config.get(
+        "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
+    )
+    return get_or_create_source(
+        source=f"FlexMeasures {owm_source_name}",
+        source_type="forecasting script",
+    )
+
+
 def get_or_create_weather_station_type() -> GenericAssetType:
     """Make sure a weather station type exists"""
     weather_station_type = GenericAssetType.query.filter(

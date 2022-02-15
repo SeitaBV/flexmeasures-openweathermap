@@ -14,40 +14,7 @@ from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
 from .locating import find_weather_sensor_by_location_or_fail
-
-
-# This maps sensor name/unit pairs we can use in FlexMeasures to OWM labels.
-# We also store seasonality attributes here.
-# Of course, the sensor names we use in FM need to be unique.
-owm_to_sensor_map = dict(
-    temp={
-        "name": "temperature",
-        "unit": "°C",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-    wind_speed={
-        "name": "wind_speed",
-        "unit": "m/s",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-    clouds={
-        "name": "radiation",
-        "unit": "kW/m²",
-        "seasonality": {
-            "daily_seasonality": True,
-            "weekly_seasonality": False,
-            "yearly_seasonality": True,
-        },
-    },
-)
+from ..sensor_specs import owm_to_sensor_map
 
 
 def get_supported_sensor_spec(name: str) -> Optional[dict]:

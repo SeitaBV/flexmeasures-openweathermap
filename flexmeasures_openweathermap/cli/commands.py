@@ -1,4 +1,3 @@
-from datetime import timedelta
 from flask import current_app
 
 from flask.cli import with_appcontext
@@ -19,9 +18,9 @@ from ..utils.filing import make_file_path
 from ..utils.owm import (
     save_forecasts_in_db,
     save_forecasts_as_json,
-    owm_to_sensor_map,
     get_supported_sensor_spec,
 )
+from ..sensor_specs import owm_to_sensor_map
 
 
 """
@@ -74,9 +73,8 @@ def add_weather_sensor(**args):
     del args["latitude"]
     del args["longitude"]
 
-    args["event_resolution"] = timedelta(minutes=60)  # OWM delivers hourly data
-
     fm_sensor_specs = get_supported_sensor_spec(args["name"])
+    args["event_resolution"] = fm_sensor_specs["event_resolution"]
     args["unit"] = fm_sensor_specs["unit"]
     sensor = Sensor(**args)
     sensor.attributes = fm_sensor_specs["seasonality"]

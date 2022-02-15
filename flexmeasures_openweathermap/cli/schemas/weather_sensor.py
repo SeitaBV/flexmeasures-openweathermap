@@ -9,9 +9,8 @@ from marshmallow import (
 
 import pytz
 from flexmeasures.data.models.time_series import Sensor
-from flexmeasures.data import db
 
-from ...utils.modeling import get_weather_station
+from ...utils.modeling import get_or_create_weather_station
 from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str
 
 
@@ -38,16 +37,16 @@ class WeatherSensorSchema(Schema):
     def validate_name_is_unique_in_weather_station(self, data, **kwargs):
         if "name" not in data or "latitude" not in data or "longitude" not in data:
             return  # That's a different validation problem
-        weather_station = get_weather_station(data["latitude"], data["longitude"])
-        if weather_station.id is None:
-            db.session.flush()
+        weather_station = get_or_create_weather_station(
+            data["latitude"], data["longitude"]
+        )
         sensor = Sensor.query.filter(
             Sensor.name == data["name"].lower(),
-            Sensor.generic_asset_id == weather_station.id,
+            Sensor.generic_asset == weather_station,
         ).one_or_none()
         if sensor:
             raise ValidationError(
-                f"A '{data['name']}' - weather sensor already exists at this weather station (with ID {weather_station.id}))."
+                f"A '{data['name']}' - weather sensor already exists at this weather station (the station's ID is {weather_station.id}))."
             )
 
     @validates("timezone")

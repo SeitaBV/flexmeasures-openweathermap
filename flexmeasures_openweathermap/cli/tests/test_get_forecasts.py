@@ -35,11 +35,11 @@ def test_get_weather_forecasts_to_db(
             },
         ]
 
-    monkeypatch.setenv("OPENWEATHERMAP_API_KEY", "dummy")
+    monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
     monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
-    result = runner.invoke(collect_weather_data, ["--location", "33.484,126"])
+    result = runner.invoke(collect_weather_data, ["--location", "33.4843866,126"])
     print(result.output)
     assert "Reported task get-openweathermap-forecasts status as True" in result.output
 

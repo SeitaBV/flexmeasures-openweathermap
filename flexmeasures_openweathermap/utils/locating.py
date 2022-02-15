@@ -5,6 +5,7 @@ import click
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
 from flexmeasures.data.models.time_series import Sensor
 from flexmeasures.data.models.generic_assets import GenericAsset
+from flexmeasures.utils import flexmeasures_inflection
 
 from .. import WEATHER_STATION_TYPE_NAME
 
@@ -92,7 +93,7 @@ def find_weather_sensor_by_location_or_fail(
             > max_degree_difference_for_nearest_weather_sensor
         ):
             raise Exception(
-                f"No sufficiently close weather sensor found (within 2 degrees distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
+                f"No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:
         raise Exception(

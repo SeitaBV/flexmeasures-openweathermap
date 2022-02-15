@@ -8,7 +8,9 @@ from flexmeasures_openweathermap import DEFAULT_FILE_PATH_LOCATION
 
 def make_file_path(app: Flask, region: str) -> str:
     """Ensure and return path for weather data"""
-    file_path = current_app.config.get("FILE_PATH_LOCATION", DEFAULT_FILE_PATH_LOCATION)
+    file_path = current_app.config.get(
+        "OPENWEATHERMAP_FILE_PATH_LOCATION", DEFAULT_FILE_PATH_LOCATION
+    )
     data_path = os.path.join(app.root_path, file_path)
     if not os.path.exists(data_path):
         click.echo("[FLEXMEASURES] Creating %s ..." % data_path)

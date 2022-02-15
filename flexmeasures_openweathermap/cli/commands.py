@@ -10,7 +10,10 @@ from flexmeasures.data.config import db
 
 from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
-from ..utils.modeling import get_weather_station, get_data_source
+from ..utils.modeling import (
+    get_or_create_weather_station,
+    get_or_create_owm_data_source,
+)
 from ..utils.locating import get_locations
 from ..utils.filing import make_file_path
 from ..utils.owm import (
@@ -22,7 +25,7 @@ from ..utils.owm import (
 
 
 """
-TODO: allow to also pass an asset ID for the weather station (instead of location) to both commands?
+TODO: allow to also pass an asset ID or name for the weather station (instead of location) to both commands?
 """
 
 supported_sensors_list = ", ".join([str(o["name"]) for o in owm_to_sensor_map.values()])
@@ -66,7 +69,7 @@ def add_weather_sensor(**args):
         )
         raise click.Abort
 
-    weather_station = get_weather_station(args["latitude"], args["longitude"])
+    weather_station = get_or_create_weather_station(args["latitude"], args["longitude"])
     args["generic_asset"] = weather_station
     del args["latitude"]
     del args["longitude"]
@@ -132,14 +135,16 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
     a geometrical grid (See the --location parameter).
     """
 
-    api_key = str(current_app.config.get("OPENWEATHERMAP_API_KEY"))
-    if api_key is None:
+    api_key = str(current_app.config.get("OPENWEATHERMAP_API_KEY", ""))
+    if api_key == "":
         raise Exception("Setting OPENWEATHERMAP_API_KEY not available.")
     locations = get_locations(location, num_cells, method)
 
     # Save the results
     if store_in_db:
-        save_forecasts_in_db(api_key, locations, data_source=get_data_source())
+        save_forecasts_in_db(
+            api_key, locations, data_source=get_or_create_owm_data_source()
+        )
     else:
         save_forecasts_as_json(
             api_key, locations, data_path=make_file_path(current_app, region)

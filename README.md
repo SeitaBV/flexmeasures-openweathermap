@@ -19,7 +19,7 @@ To collect weather forecasts:
 
 This saves forecasts for your registered sensors in the database.
 
-Use the `--help`` option for more options, e.g. for specifying two locations and ask for a few weather stations to cover the region between them.
+Use the `--help`` option for more options, e.g. for specifying two locations and ask for a few weather stations to cover the bounding box between them (where the locations are representing top left and bottom right).
 
 An alternative usage is to save raw results in JSON files (for later processing), like this:
 
@@ -28,7 +28,7 @@ An alternative usage is to save raw results in JSON files (for later processing)
 This saves the complete response from OpenWeatherMap in a local folder (i.e. no sensor registration needed, this is a direct way to use OWM, without FlexMeasures integration). `region` will become a subfolder.
  
 Finally, note that currently 1000 free calls per day can be made to the OpenWeatherMap API,
-so you can make a call every 15 minutes for up to 10 assets or every hour for up to 40 assets (or get a paid account).
+so you can make a call every 15 minutes for up to 10 locations or every hour for up to 40 locations (or get a paid account).
 
 
 ## Installation

@@ -27,8 +27,8 @@ except PackageNotFoundError:
 
 DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
 DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
-WEATHER_STATION_TYPE_NAME = "Weather station"
-DEFAULT_WEATHER_STATION_NAME = "Weather station (created by FM-OWM)"
+DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-OWM)"
+WEATHER_STATION_TYPE_NAME = "weather station"
 
 __version__ = "0.1"
 __settings__ = {
@@ -36,17 +36,12 @@ __settings__ = {
         description="You can generate this token after you made an account at OpenWeatherMap.",
         level="error",
     ),
-    "OPENWEATHERMAP_DATA_SOURCE_NAME": dict(
-        description="Name of the data source for OWM data.",
-        default="OpenWeatherMap",
-        level="debug",
-    ),
-    "FILE_PATH_LOCATION": dict(
+    "OPENWEATHERMAP_FILE_PATH_LOCATION": dict(
         description="Location of JSON files (if you store weather data in this form). Absolute path.",
         level="debug",
     ),
-    "DATA_SOURCE_NAME": dict(
-        description=f"Name of the data source, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
+    "OPENWEATHERMAP_DATA_SOURCE_NAME": dict(
+        description=f"Name of the data source for OWM data, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
         level="debug",
     ),
     "WEATHER_STATION_NAME": dict(

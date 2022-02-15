@@ -1,9 +1,8 @@
-from typing import List
-
 import pytest
 from flexmeasures.data.models.time_series import Sensor
 
 from ..commands import add_weather_sensor
+from .utils import cli_params_from_dict
 
 
 """
@@ -11,14 +10,6 @@ Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli
 """
 
 sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40}
-
-
-def cli_params_from_dict(d) -> List[str]:
-    cli_params = []
-    for k, v in d.items():
-        cli_params.append(f"--{k}")
-        cli_params.append(v)
-    return cli_params
 
 
 @pytest.mark.parametrize(

@@ -28,7 +28,7 @@ def get_locations(
         )
     ):
         raise Exception(
-            'location parameter "%s" seems malformed. Please use "latitude,longitude" or '
+            '[FLEXMEASURES-OWM] location parameter "%s" seems malformed. Please use "latitude,longitude" or '
             ' "top-left-latitude,top-left-longitude:bottom-right-latitude,bottom-right-longitude"'
             % location
         )
@@ -38,21 +38,23 @@ def get_locations(
     if len(location_identifiers) == 1:
         ll = location_identifiers[0].split(",")
         locations = [(float(ll[0]), float(ll[1]))]
-        click.echo("[FLEXMEASURES] Only one location: %s,%s." % locations[0])
+        click.echo("[FLEXMEASURES-OWM] Only one location: %s,%s." % locations[0])
     elif len(location_identifiers) == 2:
         click.echo(
-            "[FLEXMEASURES] Making a grid of locations between top/left %s and bottom/right %s ..."
+            "[FLEXMEASURES-OWM] Making a grid of locations between top/left %s and bottom/right %s ..."
             % location_identifiers
         )
         top_left = tuple(float(s) for s in location_identifiers[0].split(","))
         if len(top_left) != 2:
             raise Exception(
-                "top-left parameter '%s' is invalid." % location_identifiers[0]
+                "[FLEXMEASURES-OWM] top-left parameter '%s' is invalid."
+                % location_identifiers[0]
             )
         bottom_right = tuple(float(s) for s in location_identifiers[1].split(","))
         if len(bottom_right) != 2:
             raise Exception(
-                "bottom-right parameter '%s' is invalid." % location_identifiers[1]
+                "[FLEXMEASURES-OWM] bottom-right parameter '%s' is invalid."
+                % location_identifiers[1]
             )
 
         num_lat, num_lng = get_cell_nums(top_left, bottom_right, num_cells)
@@ -64,7 +66,10 @@ def get_locations(
             num_cells_lng=num_lng,
         ).get_locations(method)
     else:
-        raise Exception("location parameter '%s' has too many locations." % location)
+        raise Exception(
+            "[FLEXMEASURES-OWM] location parameter '%s' has too many locations."
+            % location
+        )
     return locations
 
 
@@ -93,11 +98,11 @@ def find_weather_sensor_by_location_or_fail(
             > max_degree_difference_for_nearest_weather_sensor
         ):
             raise Exception(
-                f"No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
+                f"[FLEXMEASURES-OWM] No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:
         raise Exception(
-            "No weather sensor set up yet for measuring %s. Try the register-weather-sensor CLI task."
+            "[FLEXMEASURES-OWM] No weather sensor set up yet for measuring %s. Try the register-weather-sensor CLI task."
             % sensor_name
         )
     return weather_sensor

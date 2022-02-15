@@ -1,13 +1,14 @@
 from typing import Tuple, List, Dict, Optional
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 import click
 from flask import current_app
 import requests
+from humanize import naturaldelta
 from timely_beliefs import BeliefsDataFrame
-from flexmeasures.utils.time_utils import as_server_time, get_timezone
+from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_now
 from flexmeasures.utils.geo_utils import compute_irradiance
 from flexmeasures.data.models.data_sources import DataSource
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
@@ -58,12 +59,12 @@ def save_forecasts_in_db(
     data_source: DataSource,
     max_degree_difference_for_nearest_weather_sensor: int = 2,
 ):
-    """Process the response from OpenWeatherMap API into Weather timed values.
+    """Process the response from OpenWeatherMap API into timed beliefs.
     Collects all forecasts for all locations and all sensors at all locations, then bulk-saves them.
     """
-    click.echo("[FLEXMEASURES] Getting weather forecasts:")
-    click.echo("[FLEXMEASURES]  Latitude, Longitude")
-    click.echo("[FLEXMEASURES] -----------------------")
+    click.echo("[FLEXMEASURES-OWM] Getting weather forecasts:")
+    click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
+    click.echo("[FLEXMEASURES-OWM] -----------------------")
 
     for location in locations:
         click.echo("[FLEXMEASURES] %s, %s" % location)
@@ -72,22 +73,23 @@ def save_forecasts_in_db(
         ] = {}  # keep track of the sensors to save lookups
         db_forecasts: Dict[Sensor, List[TimedBelief]] = {}  # collect beliefs per sensor
 
-        time_of_api_call, forecasts = call_openweatherapi(api_key, location)
+        now = server_now()
+        owm_time_of_api_call, forecasts = call_openweatherapi(api_key, location)
+        diff_fm_owm = now - owm_time_of_api_call
+        if abs(diff_fm_owm) > timedelta(minutes=10):
+            click.echo(
+                f"[FLEXMEASURES-OWM] Warning: difference between this server and OWM is {naturaldelta(diff_fm_owm)}"
+            )
         click.echo(
-            "[FLEXMEASURES] Called OpenWeatherMap API successfully at %s."
-            % time_of_api_call
+            f"[FLEXMEASURES-OWM] Called OpenWeatherMap API successfully at {now}."
         )
 
         # loop through forecasts, including the one of current hour (horizon 0)
         for fc in forecasts:
             fc_datetime = as_server_time(
                 datetime.fromtimestamp(fc["dt"], get_timezone())
-            ).replace(second=0, microsecond=0)
-            fc_horizon = fc_datetime - time_of_api_call
-            click.echo(
-                "[FLEXMEASURES] Processing forecast for %s (horizon: %s) ..."
-                % (fc_datetime, fc_horizon)
             )
+            click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
             for owm_response_label in owm_to_sensor_map:
                 sensor_name = str(owm_to_sensor_map[owm_response_label]["name"])
                 if owm_response_label in fc:
@@ -117,7 +119,7 @@ def save_forecasts_in_db(
                     db_forecasts[weather_sensor].append(
                         TimedBelief(
                             event_start=fc_datetime,
-                            belief_horizon=fc_horizon,
+                            belief_time=now,
                             event_value=fc_value,
                             sensor=weather_sensor,
                             source=data_source,
@@ -129,10 +131,10 @@ def save_forecasts_in_db(
                         owm_response_label,
                         fc_datetime,
                     )
-                    click.echo("[FLEXMEASURES] %s" % msg)
+                    click.echo("[FLEXMEASURES-OWM] %s" % msg)
                     current_app.logger.warning(msg)
     for sensor in db_forecasts.keys():
-        click.echo(f"Saving {sensor.name} forecasts ...")
+        click.echo(f"[FLEXMEASURES-OWM] Saving {sensor.name} forecasts ...")
         if len(db_forecasts[sensor]) == 0:
             # This is probably a serious problem
             raise Exception(
@@ -141,26 +143,34 @@ def save_forecasts_in_db(
         status = save_to_db(BeliefsDataFrame(db_forecasts[sensor]))
         if status == "success_but_nothing_new":
             current_app.logger.info(
-                "Done. These beliefs had already been saved before."
+                "[FLEXMEASURES-OWM] Done. These beliefs had already been saved before."
             )
         elif status == "success_with_unchanged_beliefs_skipped":
-            current_app.logger.info("Done. Some beliefs had already been saved before.")
+            current_app.logger.info(
+                "[FLEXMEASURES-OWM] Done. Some beliefs had already been saved before."
+            )
 
 
 def save_forecasts_as_json(
     api_key: str, locations: List[Tuple[float, float]], data_path: str
 ):
     """Get forecasts, then store each as a raw JSON file, for later processing."""
-    click.echo("[FLEXMEASURES] Getting weather forecasts:")
-    click.echo("[FLEXMEASURES]  Latitude, Longitude")
-    click.echo("[FLEXMEASURES]  ----------------------")
+    click.echo("[FLEXMEASURES-OWM] Getting weather forecasts:")
+    click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
+    click.echo("[FLEXMEASURES-OWM] ----------------------")
     for location in locations:
-        click.echo("[FLEXMEASURES] %s, %s" % location)
-        time_of_api_call, forecasts = call_openweatherapi(api_key, location)
-        now_str = time_of_api_call.strftime("%Y-%m-%dT%H-%M-%S")
+        click.echo("[FLEXMEASURES-OWM] %s, %s" % location)
+        now = server_now()
+        owm_time_of_api_call, forecasts = call_openweatherapi(api_key, location)
+        diff_fm_owm = now - owm_time_of_api_call
+        if abs(diff_fm_owm) > timedelta(minutes=10):
+            click.echo(
+                f"[FLEXMEASURES-OWM] Warning: difference between this server and OWM is {naturaldelta(diff_fm_owm)}"
+            )
+        now_str = now.strftime("%Y-%m-%dT%H-%M-%S")
         path_to_files = os.path.join(data_path, now_str)
         if not os.path.exists(path_to_files):
-            click.echo(f"Making directory: {path_to_files} ...")
+            click.echo(f"[FLEXMEASURES-OWM] Making directory: {path_to_files} ...")
             os.mkdir(path_to_files)
         forecasts_file = "%s/forecast_lat_%s_lng_%s.json" % (
             path_to_files,

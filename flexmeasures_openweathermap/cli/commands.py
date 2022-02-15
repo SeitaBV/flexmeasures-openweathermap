@@ -64,7 +64,7 @@ def add_weather_sensor(**args):
     errors = WeatherSensorSchema().validate(args)
     if errors:
         click.echo(
-            f"Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
+            f"[FLEXMEASURES-OWM] Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
         )
         raise click.Abort
 
@@ -82,10 +82,10 @@ def add_weather_sensor(**args):
     db.session.add(sensor)
     db.session.commit()
     click.echo(
-        f"Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
+        f"[FLEXMEASURES-OWM] Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
     )
     click.echo(
-        f"You can access this sensor at its entity address {sensor.entity_address}"
+        f"[FLEXMEASURES-OWM] You can access this sensor at its entity address {sensor.entity_address}"
     )
 
 
@@ -135,7 +135,9 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
 
     api_key = str(current_app.config.get("OPENWEATHERMAP_API_KEY", ""))
     if api_key == "":
-        raise Exception("Setting OPENWEATHERMAP_API_KEY not available.")
+        raise Exception(
+            "[FLEXMEASURES-OWM] Setting OPENWEATHERMAP_API_KEY not available."
+        )
     locations = get_locations(location, num_cells, method)
 
     # Save the results

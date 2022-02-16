@@ -1,45 +1,33 @@
-from datetime import datetime, timedelta
-
 from flexmeasures.data.models.time_series import TimedBelief
-from flexmeasures.utils.time_utils import as_server_time, get_timezone
 
 from ..commands import collect_weather_data
 from ...utils import owm
+from .utils import mock_owm_response
 
 
 """
 Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli-commands
 """
 
-sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40}
-
 
 def test_get_weather_forecasts_to_db(
     app, fresh_db, monkeypatch, add_weather_sensors_fresh_db
 ):
-    """ Test if we can process forecast and save them to the database."""
+    """
+    Test if we can process forecast and save them to the database.
+    """
     fresh_db.session.flush()
     wind_sensor_id = add_weather_sensors_fresh_db["wind"].id
-
-    def mock_owm_response(api_key, location):
-        mock_date = datetime.now()
-        mock_date_tz_aware = as_server_time(
-            datetime.fromtimestamp(mock_date.timestamp(), tz=get_timezone())
-        ).replace(second=0, microsecond=0)
-        return mock_date_tz_aware, [
-            {"dt": mock_date.timestamp(), "temp": 40, "wind_speed": 100},
-            {
-                "dt": (mock_date + timedelta(hours=1)).timestamp(),
-                "temp": 42,
-                "wind_speed": 90,
-            },
-        ]
+    wind_sensor_lat = add_weather_sensors_fresh_db["wind"].generic_asset.latitude
+    wind_sensor_long = add_weather_sensors_fresh_db["wind"].generic_asset.longitude
 
     monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
     monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
-    result = runner.invoke(collect_weather_data, ["--location", "33.4843866,126"])
+    result = runner.invoke(
+        collect_weather_data, ["--location", f"{wind_sensor_lat},{wind_sensor_long}"]
+    )
     print(result.output)
     assert "Reported task get-openweathermap-forecasts status as True" in result.output
 
@@ -51,3 +39,24 @@ def test_get_weather_forecasts_to_db(
     assert len(beliefs) == 2
     for wind_speed in (100, 90):
         assert wind_speed in [belief.event_value for belief in beliefs]
+
+
+def test_get_weather_forecasts_no_close_sensors(
+    app, db, monkeypatch, add_weather_sensors_fresh_db
+):
+    """
+    Looking for a location too far away from existing weather stations means we fail.
+    """
+    wind_sensor_lat = add_weather_sensors_fresh_db["wind"].generic_asset.latitude
+    wind_sensor_long = add_weather_sensors_fresh_db["wind"].generic_asset.longitude
+
+    monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
+    monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
+
+    runner = app.test_cli_runner()
+    result = runner.invoke(
+        collect_weather_data, ["--location", f"{wind_sensor_lat-5},{wind_sensor_long}"]
+    )
+    print(result.output)
+    assert "Reported task get-openweathermap-forecasts status as False" in result.output
+    assert "No sufficiently close weather sensor found" in result.output

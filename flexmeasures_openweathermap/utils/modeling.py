@@ -1,7 +1,8 @@
 from flask import current_app
 from flexmeasures.data.config import db
 from flexmeasures.data.models.generic_assets import GenericAssetType, GenericAsset
-from flexmeasures.data.models.data_sources import DataSource, get_or_create_source
+from flexmeasures.data.models.data_sources import DataSource
+from flexmeasures.data.queries import get_or_create_source
 
 from flexmeasures_openweathermap import DEFAULT_DATA_SOURCE_NAME
 from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
@@ -26,6 +27,7 @@ def get_or_create_owm_data_source_for_derived_data() -> DataSource:
     return get_or_create_source(
         source=f"FlexMeasures {owm_source_name}",
         source_type="forecasting script",
+        flush=False,
     )
 
 

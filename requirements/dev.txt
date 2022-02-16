@@ -68,6 +68,7 @@ setuptools-scm==6.4.2
 six==1.16.0
     # via
     #   -c requirements/app.txt
+    #   -c requirements/test.txt
     #   virtualenv
 toml==0.10.2
     # via

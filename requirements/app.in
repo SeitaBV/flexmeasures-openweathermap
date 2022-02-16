@@ -1,3 +1,7 @@
 flexmeasures>=0.8.0
 requests
-marshmallow
+pvlib
+# the following three are optional in pvlib, but we use them
+netCDF4
+siphon
+tables

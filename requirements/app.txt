@@ -232,7 +232,6 @@ markupsafe==2.0.1
     #   wtforms
 marshmallow==3.14.0
     # via
-    #   -r requirements/app.in
     #   flask-marshmallow
     #   flexmeasures
     #   marshmallow-polyfield
@@ -247,7 +246,9 @@ matplotlib==3.4.3
     #   flexmeasures
     #   timetomodel
 netcdf4==1.5.8
-    # via flexmeasures
+    # via
+    #   -r requirements/app.in
+    #   flexmeasures
 numexpr==2.7.3
     # via
     #   flexmeasures
@@ -332,7 +333,9 @@ psycopg2-binary==2.9.1
     #   flexmeasures
     #   timely-beliefs
 pvlib==0.9.0
-    # via flexmeasures
+    # via
+    #   -r requirements/app.in
+    #   flexmeasures
 py-moneyed==2.0
     # via flexmeasures
 pycparser==2.20
@@ -423,7 +426,9 @@ selenium==4.0.0
 sentry-sdk[flask]==1.4.3
     # via flexmeasures
 siphon==0.9
-    # via flexmeasures
+    # via
+    #   -r requirements/app.in
+    #   flexmeasures
 six==1.16.0
     # via
     #   bcrypt
@@ -465,7 +470,9 @@ statsmodels==0.13.0
     #   flexmeasures
     #   timetomodel
 tables==3.6.1
-    # via flexmeasures
+    # via
+    #   -r requirements/app.in
+    #   flexmeasures
 threadpoolctl==3.0.0
     # via
     #   flexmeasures

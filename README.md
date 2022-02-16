@@ -33,10 +33,15 @@ so you can make a call every 15 minutes for up to 10 locations or every hour for
 
 ## Installation
 
-Add "/path/to/flexmeasures-openweathermap/flexmeasures_openweathermap" to your FlexMeasures (>v0.7.0dev8) config file,
+To install locally, run
+
+    make install
+
+To add as plugin to an existing FlexMeasures system, add "/path/to/flexmeasures-openweathermap/flexmeasures_openweathermap" to your FlexMeasures (>v0.7.0dev8) config file,
 using the FLEXMEASURES_PLUGINS setting (a list).
 
 Alternatively, if you installed this plugin as a package (e.g. via `python setup.py install`, `pip install -e` or `pip install flexmeasures_openweathermap` after this project is on Pypi), then "flexmeasures_openweathermap" suffices.
+
 
 
 ## Development

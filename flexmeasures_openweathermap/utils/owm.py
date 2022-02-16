@@ -9,7 +9,6 @@ import requests
 from humanize import naturaldelta
 from timely_beliefs import BeliefsDataFrame
 from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_now
-from flexmeasures.utils.geo_utils import compute_irradiance
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
@@ -19,6 +18,7 @@ from .modeling import (
     get_or_create_owm_data_source,
     get_or_create_owm_data_source_for_derived_data,
 )
+from .radiating import compute_irradiance
 
 
 def get_supported_sensor_spec(name: str) -> Optional[dict]:
@@ -109,7 +109,7 @@ def save_forecasts_in_db(
                     fc_value = fc[owm_response_label]
 
                     # the radiation is not available in OWM -> we compute it ourselves
-                    if sensor_name == "radiation":
+                    if sensor_name == "irradiance":
                         fc_value = compute_irradiance(
                             location[0],
                             location[1],

@@ -4,15 +4,15 @@
 #
 #    pip-compile --output-file=requirements/app.txt requirements/app.in
 #
-alembic==1.7.4
+alembic==1.7.6
     # via
     #   flask-migrate
     #   flexmeasures
-altair==4.1.0
+altair==4.2.0
     # via
     #   flexmeasures
     #   timely-beliefs
-arrow==1.2.1
+arrow==1.2.2
     # via
     #   flexmeasures
     #   rq-dashboard
@@ -21,7 +21,7 @@ async-generator==1.10
     #   flexmeasures
     #   trio
     #   trio-websocket
-attrs==21.2.0
+attrs==21.4.0
     # via
     #   flexmeasures
     #   jsonschema
@@ -36,12 +36,11 @@ backports.zoneinfo==0.2.1
     #   flexmeasures
     #   pytz-deprecation-shim
     #   tzlocal
+    #   workalendar
 bcrypt==3.2.0
     # via flexmeasures
 beautifulsoup4==4.10.0
-    # via
-    #   flexmeasures
-    #   siphon
+    # via siphon
 blinker==1.4
     # via
     #   flask-mail
@@ -64,11 +63,9 @@ cffi==1.15.0
     #   bcrypt
     #   cryptography
     #   flexmeasures
-cftime==1.5.1.1
-    # via
-    #   flexmeasures
-    #   netcdf4
-charset-normalizer==2.0.7
+cftime==1.5.2
+    # via netcdf4
+charset-normalizer==2.0.12
     # via
     #   flexmeasures
     #   requests
@@ -79,7 +76,11 @@ click==8.0.3
     #   rq
 colour==0.1.5
     # via flexmeasures
-cryptography==35.0.0
+convertdate==2.4.0
+    # via
+    #   flexmeasures
+    #   workalendar
+cryptography==36.0.1
     # via
     #   flexmeasures
     #   pyopenssl
@@ -88,7 +89,15 @@ cycler==0.11.0
     # via
     #   flexmeasures
     #   matplotlib
-dnspython==2.1.0
+deprecated==1.2.13
+    # via
+    #   flexmeasures
+    #   redis
+dill==0.3.4
+    # via
+    #   flexmeasures
+    #   openturns
+dnspython==2.2.0
     # via
     #   email-validator
     #   flexmeasures
@@ -96,11 +105,11 @@ email-validator==1.1.3
     # via
     #   flask-security-too
     #   flexmeasures
-entrypoints==0.3
+entrypoints==0.4
     # via
     #   altair
     #   flexmeasures
-filelock==3.3.2
+filelock==3.4.2
     # via
     #   flexmeasures
     #   tldextract
@@ -149,25 +158,27 @@ flask-sqlalchemy==2.5.1
     #   flexmeasures
 flask-sslify==0.1.5
     # via flexmeasures
-flask-wtf==0.15.1
+flask-wtf==1.0.0
     # via
     #   flask-security-too
     #   flexmeasures
-flexmeasures==0.8.0
+flexmeasures==0.9.0.dev37
     # via -r requirements/app.in
+fonttools==4.29.1
+    # via
+    #   flexmeasures
+    #   matplotlib
 greenlet==1.1.2
     # via
     #   flexmeasures
     #   sqlalchemy
-h11==0.12.0
+h11==0.13.0
     # via
     #   flexmeasures
     #   wsproto
-h5py==3.5.0
-    # via
-    #   flexmeasures
-    #   pvlib
-humanize==3.12.0
+h5py==3.6.0
+    # via pvlib
+humanize==4.0.0
     # via flexmeasures
 idna==3.3
     # via
@@ -177,7 +188,7 @@ idna==3.3
     #   tldextract
     #   trio
     #   urllib3
-importlib-metadata==4.8.1
+importlib-metadata==4.11.0
     # via
     #   alembic
     #   flexmeasures
@@ -186,13 +197,14 @@ importlib-resources==5.4.0
     # via
     #   alembic
     #   flexmeasures
-inflect==5.3.0
+    #   jsonschema
+inflect==5.4.0
     # via flexmeasures
 inflection==0.5.1
     # via flexmeasures
-iso8601==0.1.16
+iso8601==1.0.2
     # via flexmeasures
-isodate==0.6.0
+isodate==0.6.1
     # via
     #   flexmeasures
     #   timely-beliefs
@@ -202,7 +214,7 @@ itsdangerous==2.0.1
     #   flask-security-too
     #   flask-wtf
     #   flexmeasures
-jinja2==3.0.2
+jinja2==3.0.3
     # via
     #   altair
     #   bokeh
@@ -212,7 +224,7 @@ joblib==1.1.0
     # via
     #   flexmeasures
     #   scikit-learn
-jsonschema==4.1.2
+jsonschema==4.4.0
     # via
     #   altair
     #   flexmeasures
@@ -220,7 +232,11 @@ kiwisolver==1.3.2
     # via
     #   flexmeasures
     #   matplotlib
-mako==1.1.5
+lunardate==0.2.0
+    # via
+    #   flexmeasures
+    #   workalendar
+mako==1.1.6
     # via
     #   alembic
     #   flexmeasures
@@ -230,7 +246,7 @@ markupsafe==2.0.1
     #   jinja2
     #   mako
     #   wtforms
-marshmallow==3.14.0
+marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   flexmeasures
@@ -239,21 +255,17 @@ marshmallow==3.14.0
     #   webargs
 marshmallow-polyfield==5.10
     # via flexmeasures
-marshmallow-sqlalchemy==0.26.1
+marshmallow-sqlalchemy==0.27.0
     # via flexmeasures
-matplotlib==3.4.3
+matplotlib==3.5.1
     # via
     #   flexmeasures
     #   timetomodel
 netcdf4==1.5.8
-    # via
-    #   -r requirements/app.in
-    #   flexmeasures
-numexpr==2.7.3
-    # via
-    #   flexmeasures
-    #   tables
-numpy==1.21.3
+    # via -r requirements/app.in
+numexpr==2.8.1
+    # via tables
+numpy==1.22.2
     # via
     #   altair
     #   bokeh
@@ -274,7 +286,7 @@ numpy==1.21.3
     #   tables
     #   timely-beliefs
     #   timetomodel
-openturns==1.17
+openturns==1.18
     # via
     #   flexmeasures
     #   timely-beliefs
@@ -282,11 +294,17 @@ outcome==1.1.0
     # via
     #   flexmeasures
     #   trio
-packaging==21.2
+packaging==21.3
     # via
     #   bokeh
     #   flexmeasures
+    #   matplotlib
+    #   numexpr
     #   pint
+    #   redis
+    #   statsmodels
+    #   tables
+    #   webargs
 pandas==1.2.5
     # via
     #   altair
@@ -307,7 +325,7 @@ patsy==0.5.2
     # via
     #   flexmeasures
     #   statsmodels
-pillow==8.4.0
+pillow==9.0.1
     # via
     #   bokeh
     #   flexmeasures
@@ -322,38 +340,46 @@ properscoring==0.1
     # via
     #   flexmeasures
     #   timely-beliefs
-protobuf==3.19.1
+protobuf==3.19.4
+    # via siphon
+pscript==0.7.7
+    # via flexmeasures
+psutil==5.9.0
     # via
     #   flexmeasures
-    #   siphon
-pscript==0.7.6
-    # via flexmeasures
-psycopg2-binary==2.9.1
+    #   openturns
+psycopg2-binary==2.9.3
     # via
     #   flexmeasures
     #   timely-beliefs
 pvlib==0.9.0
-    # via
-    #   -r requirements/app.in
-    #   flexmeasures
+    # via -r requirements/app.in
 py-moneyed==2.0
     # via flexmeasures
-pycparser==2.20
+pycparser==2.21
     # via
     #   cffi
     #   flexmeasures
-pyomo==6.1.2
+pyluach==1.3.0
+    # via
+    #   flexmeasures
+    #   workalendar
+pymeeus==0.5.11
+    # via
+    #   convertdate
+    #   flexmeasures
+pyomo==6.2
     # via flexmeasures
-pyopenssl==21.0.0
+pyopenssl==22.0.0
     # via
     #   flexmeasures
     #   urllib3
-pyparsing==2.4.7
+pyparsing==3.0.7
     # via
     #   flexmeasures
     #   matplotlib
     #   packaging
-pyrsistent==0.18.0
+pyrsistent==0.18.1
     # via
     #   flexmeasures
     #   jsonschema
@@ -365,7 +391,8 @@ python-dateutil==2.8.2
     #   matplotlib
     #   pandas
     #   timetomodel
-python-dotenv==0.19.1
+    #   workalendar
+python-dotenv==0.19.2
     # via flexmeasures
 pytz==2021.3
     # via
@@ -383,12 +410,12 @@ pyyaml==6.0
     # via
     #   bokeh
     #   flexmeasures
-redis==3.5.3
+redis==4.1.3
     # via
     #   flexmeasures
     #   rq
     #   rq-dashboard
-requests==2.26.0
+requests==2.27.1
     # via
     #   -r requirements/app.in
     #   flexmeasures
@@ -400,17 +427,17 @@ requests-file==1.5.1
     # via
     #   flexmeasures
     #   tldextract
-rq==1.10.0
+rq==1.10.1
     # via
     #   flexmeasures
     #   rq-dashboard
 rq-dashboard==0.6.1
     # via flexmeasures
-scikit-learn==1.0.1
+scikit-learn==1.0.2
     # via
     #   flexmeasures
     #   sklearn
-scipy==1.7.1
+scipy==1.8.0
     # via
     #   flexmeasures
     #   properscoring
@@ -419,16 +446,14 @@ scipy==1.7.1
     #   statsmodels
     #   timely-beliefs
     #   timetomodel
-selenium==4.0.0
+selenium==4.1.0
     # via
     #   flexmeasures
     #   timely-beliefs
-sentry-sdk[flask]==1.4.3
+sentry-sdk[flask]==1.5.5
     # via flexmeasures
 siphon==0.9
-    # via
-    #   -r requirements/app.in
-    #   flexmeasures
+    # via -r requirements/app.in
 six==1.16.0
     # via
     #   bcrypt
@@ -438,7 +463,6 @@ six==1.16.0
     #   flexmeasures
     #   isodate
     #   patsy
-    #   pyopenssl
     #   python-dateutil
     #   requests-file
 sklearn==0.0
@@ -453,11 +477,9 @@ sortedcontainers==2.4.0
     # via
     #   flexmeasures
     #   trio
-soupsieve==2.2.1
-    # via
-    #   beautifulsoup4
-    #   flexmeasures
-sqlalchemy==1.4.26
+soupsieve==2.3.1
+    # via beautifulsoup4
+sqlalchemy==1.4.31
     # via
     #   alembic
     #   flask-sqlalchemy
@@ -465,25 +487,25 @@ sqlalchemy==1.4.26
     #   marshmallow-sqlalchemy
     #   timely-beliefs
     #   timetomodel
-statsmodels==0.13.0
+statsmodels==0.13.2
     # via
     #   flexmeasures
     #   timetomodel
-tables==3.6.1
-    # via
-    #   -r requirements/app.in
-    #   flexmeasures
-threadpoolctl==3.0.0
+tables==3.7.0
+    # via -r requirements/app.in
+tabulate==0.8.9
+    # via flexmeasures
+threadpoolctl==3.1.0
     # via
     #   flexmeasures
     #   scikit-learn
-timely-beliefs==1.10.0
+timely-beliefs==1.11.2
     # via flexmeasures
 timetomodel==0.7.1
     # via flexmeasures
 tldextract==3.1.2
     # via flexmeasures
-toolz==0.11.1
+toolz==0.11.2
     # via
     #   altair
     #   flexmeasures
@@ -500,7 +522,7 @@ trio-websocket==0.9.2
     # via
     #   flexmeasures
     #   selenium
-typing-extensions==4.0.1
+typing-extensions==4.1.1
     # via
     #   flexmeasures
     #   py-moneyed
@@ -510,33 +532,36 @@ tzdata==2021.5
     #   pytz-deprecation-shim
 tzlocal==4.1
     # via flexmeasures
-urllib3[secure]==1.26.7
+urllib3[secure]==1.26.8
     # via
     #   flexmeasures
     #   requests
     #   selenium
     #   sentry-sdk
-webargs==8.0.1
+webargs==8.1.0
     # via flexmeasures
-werkzeug==2.0.2
+werkzeug==2.0.3
     # via
     #   flask
+    #   flexmeasures
+workalendar==16.2.0
+    # via flexmeasures
+wrapt==1.13.3
+    # via
+    #   deprecated
     #   flexmeasures
 wsproto==1.0.0
     # via
     #   flexmeasures
     #   trio-websocket
-wtforms==2.3.3
+wtforms==3.0.1
     # via
     #   flask-wtf
     #   flexmeasures
 xlrd==2.0.1
     # via flexmeasures
-zipp==3.6.0
+zipp==3.7.0
     # via
     #   flexmeasures
     #   importlib-metadata
     #   importlib-resources
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

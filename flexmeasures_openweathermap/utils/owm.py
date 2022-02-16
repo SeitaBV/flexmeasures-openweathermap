@@ -94,17 +94,15 @@ def save_forecasts_in_db(
             click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
             for owm_response_label in owm_to_sensor_map:
                 data_source = get_or_create_owm_data_source()
-                sensor_name = str(owm_to_sensor_map[owm_response_label]["name"])
+                sensor_specs = owm_to_sensor_map[owm_response_label]
+                sensor_name = str(sensor_specs["name"])
                 if owm_response_label in fc:
-                    if sensor_name in weather_sensors:
-                        weather_sensor = weather_sensors[sensor_name]
-                    else:
-                        weather_sensor = find_weather_sensor_by_location_or_fail(
-                            location,
-                            max_degree_difference_for_nearest_weather_sensor,
-                            sensor_name=sensor_name,
-                        )
-                        weather_sensors[sensor_name] = weather_sensor
+                    weather_sensor = get_weather_sensor(
+                        owm_response_label,
+                        location,
+                        weather_sensors,
+                        max_degree_difference_for_nearest_weather_sensor,
+                    )
                     if weather_sensor not in db_forecasts.keys():
                         db_forecasts[weather_sensor] = []
 
@@ -154,6 +152,31 @@ def save_forecasts_in_db(
             current_app.logger.info(
                 "[FLEXMEASURES-OWM] Done. Some beliefs had already been saved before."
             )
+
+
+def get_weather_sensor(
+    owm_response_label: str,
+    location: Tuple[float, float],
+    weather_sensors: Dict[str, Sensor],
+    max_degree_difference_for_nearest_weather_sensor: int,
+) -> Sensor:
+    """Get the weather sensor for this own response label and location, if we haven't retrieved it already."""
+    sensor_specs = owm_to_sensor_map[owm_response_label]
+    sensor_name = str(sensor_specs["name"])
+    if sensor_name in weather_sensors:
+        weather_sensor = weather_sensors[sensor_name]
+    else:
+        weather_sensor = find_weather_sensor_by_location_or_fail(
+            location,
+            max_degree_difference_for_nearest_weather_sensor,
+            sensor_name=sensor_name,
+        )
+        weather_sensors[sensor_name] = weather_sensor
+    if weather_sensor.event_resolution != sensor_specs["event_resolution"]:
+        raise Exception(
+            f"[FLEXMEASURES-OWM] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
+        )
+    return weather_sensor
 
 
 def save_forecasts_as_json(

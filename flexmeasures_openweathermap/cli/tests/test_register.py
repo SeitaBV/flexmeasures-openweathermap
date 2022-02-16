@@ -9,7 +9,7 @@ from .utils import cli_params_from_dict
 Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli-commands
 """
 
-sensor_params = {"name": "wind_speed", "latitude": 30, "longitude": 40}
+sensor_params = {"name": "wind speed", "latitude": 30, "longitude": 40}
 
 
 @pytest.mark.parametrize(

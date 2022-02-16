@@ -16,17 +16,18 @@ def test_get_weather_forecasts_to_db(
     """
     Test if we can process forecast and save them to the database.
     """
+    wind_sensor = add_weather_sensors_fresh_db["wind"]
     fresh_db.session.flush()
-    wind_sensor_id = add_weather_sensors_fresh_db["wind"].id
-    wind_sensor_lat = add_weather_sensors_fresh_db["wind"].generic_asset.latitude
-    wind_sensor_long = add_weather_sensors_fresh_db["wind"].generic_asset.longitude
+    wind_sensor_id = wind_sensor.id
+    weather_station = wind_sensor.generic_asset
 
     monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
     monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
     result = runner.invoke(
-        collect_weather_data, ["--location", f"{wind_sensor_lat},{wind_sensor_long}"]
+        collect_weather_data,
+        ["--location", f"{weather_station.latitude},{weather_station.longitude}"],
     )
     print(result.output)
     assert "Reported task get-openweathermap-forecasts status as True" in result.output
@@ -47,15 +48,15 @@ def test_get_weather_forecasts_no_close_sensors(
     """
     Looking for a location too far away from existing weather stations means we fail.
     """
-    wind_sensor_lat = add_weather_sensors_fresh_db["wind"].generic_asset.latitude
-    wind_sensor_long = add_weather_sensors_fresh_db["wind"].generic_asset.longitude
+    weather_station = add_weather_sensors_fresh_db["wind"].generic_asset
 
     monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
     monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
     result = runner.invoke(
-        collect_weather_data, ["--location", f"{wind_sensor_lat-5},{wind_sensor_long}"]
+        collect_weather_data,
+        ["--location", f"{weather_station.latitude-5},{weather_station.longitude}"],
     )
     print(result.output)
     assert "Reported task get-openweathermap-forecasts status as False" in result.output

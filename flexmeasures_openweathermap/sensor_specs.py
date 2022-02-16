@@ -23,13 +23,13 @@ owm_to_sensor_map = dict(
         "seasonality": weather_seasonality,
     },
     wind_speed={
-        "name": "wind_speed",
+        "name": "wind speed",
         "unit": "m/s",
         "event_resolution": timedelta(minutes=60),
         "seasonality": weather_seasonality,
     },
     clouds={
-        "name": "radiation",
+        "name": "irradiance",
         "unit": "kW/m²",
         "event_resolution": timedelta(minutes=60),
         "seasonality": weather_seasonality,

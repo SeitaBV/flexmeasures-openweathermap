@@ -8,6 +8,8 @@ from flexmeasures.conftest import db, fresh_db  # noqa: F401
 from flexmeasures.data.models.time_series import Sensor
 from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
 
+from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
+
 
 @pytest.fixture(scope="session")
 def app():
@@ -41,7 +43,7 @@ def add_weather_sensors_fresh_db(fresh_db) -> Dict[str, Sensor]:  # noqa: F811
 
 def create_weather_sensors(db: SQLAlchemy):  # noqa: F811
     """Add a weather station asset with two weather sensors."""
-    weather_station_type = GenericAssetType(name="weather station")
+    weather_station_type = GenericAssetType(name=WEATHER_STATION_TYPE_NAME)
     db.session.add(weather_station_type)
 
     weather_station = GenericAsset(

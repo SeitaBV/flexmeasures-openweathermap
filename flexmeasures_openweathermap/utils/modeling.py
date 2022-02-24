@@ -39,7 +39,7 @@ def get_or_create_weather_station_type() -> GenericAssetType:
     if weather_station_type is None:
         weather_station_type = GenericAssetType(
             name=WEATHER_STATION_TYPE_NAME,
-            description="A weather station with various sensors",
+            description="A weather station with various sensors.",
         )
         db.session.add(weather_station_type)
     return weather_station_type

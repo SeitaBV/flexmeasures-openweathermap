@@ -4,9 +4,9 @@
 
 To register a new weather sensor:
 
-`flexmeasures owm register-weather-sensor --name wind-speed --latitude 30 --longitude 40`
+`flexmeasures owm register-weather-sensor --name "wind speed" --latitude 30 --longitude 40`
 
-Currently supported: wind_speed, temperature & radiation.
+Currently supported: wind speed, temperature & irradiance.
 
 Notes about weather sensor setup: 
 
@@ -19,7 +19,7 @@ To collect weather forecasts:
 
 This saves forecasts for your registered sensors in the database.
 
-Use the `--help`` option for more options, e.g. for specifying two locations and ask for a few weather stations to cover the bounding box between them (where the locations are representing top left and bottom right).
+Use the `--help`` option for more options, e.g. for specifying two locations and requesting that a number of weather stations cover the bounding box between them (where the locations represent top left and bottom right).
 
 An alternative usage is to save raw results in JSON files (for later processing), like this:
 

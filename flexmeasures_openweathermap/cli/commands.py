@@ -24,6 +24,7 @@ from ..sensor_specs import owm_to_sensor_map
 
 """
 TODO: allow to also pass an asset ID or name for the weather station (instead of location) to both commands?
+      See https://github.com/SeitaBV/flexmeasures-openweathermap/issues/2
 """
 
 supported_sensors_list = ", ".join([str(o["name"]) for o in owm_to_sensor_map.values()])
@@ -68,15 +69,12 @@ def add_weather_sensor(**args):
         raise click.Abort
 
     weather_station = get_or_create_weather_station(args["latitude"], args["longitude"])
-    args["generic_asset"] = weather_station
-    del args["latitude"]
-    del args["longitude"]
 
     fm_sensor_specs = get_supported_sensor_spec(args["name"])
-    args["event_resolution"] = fm_sensor_specs["event_resolution"]
-    args["unit"] = fm_sensor_specs["unit"]
-    sensor = Sensor(**args)
-    sensor.attributes = fm_sensor_specs["seasonality"]
+    fm_sensor_specs["generic_asset"] = weather_station
+    fm_sensor_specs["timezone"] = args["timezone"]
+    sensor = Sensor(**fm_sensor_specs)
+    sensor.attributes = fm_sensor_specs["attributes"]
 
     db.session.add(sensor)
     db.session.commit()

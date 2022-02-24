@@ -8,7 +8,7 @@ At the moment, we only extract from OWM hourly data.
 """
 
 
-weather_seasonality = {
+weather_attributes = {
     "daily_seasonality": True,
     "weekly_seasonality": False,
     "yearly_seasonality": True,
@@ -20,18 +20,18 @@ owm_to_sensor_map = dict(
         "name": "temperature",
         "unit": "°C",
         "event_resolution": timedelta(minutes=60),
-        "seasonality": weather_seasonality,
+        "attributes": weather_attributes,
     },
     wind_speed={
         "name": "wind speed",
         "unit": "m/s",
         "event_resolution": timedelta(minutes=60),
-        "seasonality": weather_seasonality,
+        "attributes": weather_attributes,
     },
     clouds={
         "name": "irradiance",
         "unit": "kW/m²",
         "event_resolution": timedelta(minutes=60),
-        "seasonality": weather_seasonality,
+        "attributes": weather_attributes,
     },
 )

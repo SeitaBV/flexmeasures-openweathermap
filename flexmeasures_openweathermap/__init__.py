@@ -12,7 +12,7 @@ from importlib_metadata import version, PackageNotFoundError
 
 from flask import Blueprint
 
-from .utils import ensure_bp_routes_are_loaded_fresh
+from .utils.blueprinting import ensure_bp_routes_are_loaded_fresh
 
 # Overwriting version (if possible) from the package metadata
 # ― if this plugin has been installed as a package.
@@ -24,13 +24,36 @@ except PackageNotFoundError:
     # package is not installed
     pass
 
+
+DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
+DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
+DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-OWM)"
+WEATHER_STATION_TYPE_NAME = "weather station"
+
+__version__ = "0.1"
+__settings__ = {
+    "OPENWEATHERMAP_API_KEY": dict(
+        description="You can generate this token after you made an account at OpenWeatherMap.",
+        level="error",
+    ),
+    "OPENWEATHERMAP_FILE_PATH_LOCATION": dict(
+        description="Location of JSON files (if you store weather data in this form). Absolute path.",
+        level="debug",
+    ),
+    "OPENWEATHERMAP_DATA_SOURCE_NAME": dict(
+        description=f"Name of the data source for OWM data, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
+        level="debug",
+    ),
+    "WEATHER_STATION_NAME": dict(
+        description=f"Name of the weather station asset, defaults to '{DEFAULT_WEATHER_STATION_NAME}'",
+        level="debug",
+    ),
+}
+
 # CLI
-flexmeasures_openweathermap_cli_bp: Blueprint = Blueprint(
-    "flexmeasures-openweathermap CLI",
-    __name__,
-    cli_group="flexmeasures-openweathermap"
+flexmeasures_openweathermap_bp: Blueprint = Blueprint(
+    "flexmeasures-openweathermap CLI", __name__, cli_group="owm"
 )
-flexmeasures_openweathermap_cli_bp.cli.help = "flexmeasures-openweathermap CLI commands"
+flexmeasures_openweathermap_bp.cli.help = "flexmeasures-openweathermap CLI commands"
 ensure_bp_routes_are_loaded_fresh("cli.commands")
 from flexmeasures_openweathermap.cli import commands  # noqa: E402,F401
-

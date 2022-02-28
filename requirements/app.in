@@ -1,1 +1,7 @@
-flexmeasures>=0.8.0
+flexmeasures>=0.9.0.dev37
+requests
+pvlib
+# the following three are optional in pvlib, but we use them
+netCDF4
+siphon
+tables

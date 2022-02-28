@@ -17,13 +17,19 @@ jobs:
   test:
     needs: check
     runs-on: ubuntu-latest
-    #strategy:  # TODO: make work with pre-commit
-    #  matrix:
-    #    python-version: [ '3.8', '3.6' ]
-    name: "Test (on Python3.8)"
+    strategy:
+      fail-fast: false
+      matrix:
+        py_version: [ '3.8', '3.9' ]
+    name: "Test (on Python ${{ matrix.py_version }})"
     steps:
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - uses: actions/checkout@v2
+          python-version: ${{ matrix.py_version }}
+      - name: Check out src from Git
+        uses: actions/checkout@v2
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - run: make test

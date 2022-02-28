@@ -16,7 +16,7 @@ def load_requirements(use_case):
 
 setup(
     name="flexmeasures-openweathermap",
-    description="Integratig FlexMeasures with OpenWeatherMap",
+    description="Integrating FlexMeasures with OpenWeatherMap",
     author="Seita Energy Flexibility BV",
     author_email="nicolas@seita.nl",
     url="https://github.com/SeitaBV/flexmeasures-openweathermap",
@@ -29,7 +29,7 @@ setup(
     include_package_data=True,  # setuptools_scm takes care of adding the files in SCM
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",

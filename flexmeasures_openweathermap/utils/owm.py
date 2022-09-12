@@ -27,7 +27,7 @@ def get_supported_sensor_spec(name: str) -> Optional[dict]:
     """
     for supported_sensor_spec in mapping:
         if supported_sensor_spec["fm_sensor_name"] == name:
-            return supported_sensor_spec
+            return supported_sensor_spec.copy()
     return None
 
 

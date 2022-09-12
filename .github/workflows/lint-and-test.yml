@@ -32,6 +32,9 @@ jobs:
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          sudo apt-get update
+          sudo apt-get -y install postgresql-client
+          psql -h $PGHOST -p $PGPORT --file scripts/load-psql-extensions.sql -U $PGUSER $PGDB;
       - run: make test
     env:
       PGHOST: 127.0.0.1

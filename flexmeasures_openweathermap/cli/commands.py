@@ -75,6 +75,8 @@ def add_weather_sensor(**args):
     fm_sensor_specs = get_supported_sensor_spec(args["name"])
     fm_sensor_specs["generic_asset"] = weather_station
     fm_sensor_specs["timezone"] = args["timezone"]
+    fm_sensor_specs["name"] = fm_sensor_specs.pop("fm_sensor_name")
+    fm_sensor_specs.pop("owm_sensor_name")
     sensor = Sensor(**fm_sensor_specs)
     sensor.attributes = fm_sensor_specs["attributes"]
 

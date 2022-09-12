@@ -6,11 +6,11 @@ on: push
 jobs:
   check:
     runs-on: ubuntu-latest
-    name: Check (on Python3.8)
+    name: Check (on Python3.9)
     steps:
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
       - uses: actions/checkout@v2
       - uses: pre-commit/action@v2.0.0
 
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py_version: [ '3.8', '3.9' ]
+        py_version: [ '3.9' ]
     name: "Test (on Python ${{ matrix.py_version }})"
     steps:
       - uses: actions/setup-python@v2
@@ -32,4 +32,27 @@ jobs:
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          sudo apt-get update
+          sudo apt-get -y install postgresql-client
+          psql -h $PGHOST -p $PGPORT --file scripts/load-psql-extensions.sql -U $PGUSER $PGDB;
       - run: make test
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: flexmeasures_test
+      PGDB: flexmeasures_test
+      PGPASSWORD: flexmeasures_test
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:12.5 
+        env:
+          POSTGRES_USER: flexmeasures_test
+          POSTGRES_PASSWORD: flexmeasures_test
+          POSTGRES_DB: flexmeasures_test
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5

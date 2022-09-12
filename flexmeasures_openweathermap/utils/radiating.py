@@ -34,4 +34,4 @@ def ghi_clear_to_ghi(ghi_clear: float, cloud_coverage: float) -> float:
     """
     if cloud_coverage < 0 or cloud_coverage > 1:
         raise ValueError("cloud_coverage should lie in the interval [0, 1]")
-    return (1 - 0.87 * cloud_coverage ** 1.9) * ghi_clear
+    return (1 - 0.87 * cloud_coverage**1.9) * ghi_clear

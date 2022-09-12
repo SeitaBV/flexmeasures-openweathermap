@@ -11,7 +11,7 @@ Useful resource: https://flask.palletsprojects.com/en/2.0.x/testing/#testing-cli
 
 
 def test_get_weather_forecasts_to_db(
-    app, fresh_db, monkeypatch, add_weather_sensors_fresh_db
+    app, fresh_db, monkeypatch, run_as_cli, add_weather_sensors_fresh_db
 ):
     """
     Test if we can process forecast and save them to the database.
@@ -43,7 +43,7 @@ def test_get_weather_forecasts_to_db(
 
 
 def test_get_weather_forecasts_no_close_sensors(
-    app, db, monkeypatch, add_weather_sensors_fresh_db
+    app, db, monkeypatch, run_as_cli, add_weather_sensors_fresh_db
 ):
     """
     Looking for a location too far away from existing weather stations means we fail.

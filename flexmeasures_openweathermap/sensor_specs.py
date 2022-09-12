@@ -15,23 +15,33 @@ weather_attributes = {
 }
 
 
-owm_to_sensor_map = dict(
-    temp={
-        "name": "temperature",
-        "unit": "°C",
-        "event_resolution": timedelta(minutes=60),
-        "attributes": weather_attributes,
-    },
-    wind_speed={
-        "name": "wind speed",
-        "unit": "m/s",
-        "event_resolution": timedelta(minutes=60),
-        "attributes": weather_attributes,
-    },
-    clouds={
-        "name": "irradiance",
-        "unit": "kW/m²",
-        "event_resolution": timedelta(minutes=60),
-        "attributes": weather_attributes,
-    },
-)
+mapping = [
+    dict(
+        fm_sensor_name="temperature",
+        owm_sensor_name="temp",
+        unit="°C",
+        event_resolution=timedelta(minutes=60),
+        attributes=weather_attributes,
+    ),
+    dict(
+        fm_sensor_name="wind speed",
+        owm_sensor_name="wind_speed",
+        unit="m/s",
+        event_resolution=timedelta(minutes=60),
+        attributes=weather_attributes,
+    ),
+    dict(
+        fm_sensor_name="cloud cover",
+        owm_sensor_name="clouds",
+        unit="%",
+        event_resolution=timedelta(minutes=60),
+        attributes=weather_attributes,
+    ),
+    dict(
+        fm_sensor_name="irradiance",
+        owm_sensor_name="clouds",
+        unit="kW/m²",
+        event_resolution=timedelta(minutes=60),
+        attributes=weather_attributes,
+    ),
+]

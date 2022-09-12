@@ -19,7 +19,7 @@ from ..utils.owm import (
     save_forecasts_as_json,
     get_supported_sensor_spec,
 )
-from ..sensor_specs import owm_to_sensor_map
+from ..sensor_specs import mapping
 
 
 """
@@ -27,7 +27,9 @@ TODO: allow to also pass an asset ID or name for the weather station (instead of
       See https://github.com/SeitaBV/flexmeasures-openweathermap/issues/2
 """
 
-supported_sensors_list = ", ".join([str(o["name"]) for o in owm_to_sensor_map.values()])
+supported_sensors_list = ", ".join(
+    [str(sensor_specs["fm_sensor_name"]) for sensor_specs in mapping]
+)
 
 
 @flexmeasures_openweathermap_bp.cli.command("register-weather-sensor")

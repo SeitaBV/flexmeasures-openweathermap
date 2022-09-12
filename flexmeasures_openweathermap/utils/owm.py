@@ -13,7 +13,7 @@ from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
 from .locating import find_weather_sensor_by_location_or_fail
-from ..sensor_specs import owm_to_sensor_map
+from ..sensor_specs import mapping
 from .modeling import (
     get_or_create_owm_data_source,
     get_or_create_owm_data_source_for_derived_data,
@@ -25,15 +25,20 @@ def get_supported_sensor_spec(name: str) -> Optional[dict]:
     """
     Find the specs from a sensor by name.
     """
-    for supported_sensor_spec in owm_to_sensor_map.values():
-        if supported_sensor_spec["name"] == name:
+    for supported_sensor_spec in mapping:
+        if supported_sensor_spec["fm_sensor_name"] == name:
             return supported_sensor_spec
     return None
 
 
 def get_supported_sensors_str() -> str:
-    """ A string - list of supported sensors, also revealing their unit"""
-    return ", ".join([f"{o['name']} ({o['unit']})" for o in owm_to_sensor_map.values()])
+    """A string - list of supported sensors, also revealing their unit"""
+    return ", ".join(
+        [
+            f"{sensor_specs['fm_sensor_name']} ({sensor_specs['unit']})"
+            for sensor_specs in mapping
+        ]
+    )
 
 
 def call_openweatherapi(
@@ -92,13 +97,13 @@ def save_forecasts_in_db(
                 datetime.fromtimestamp(fc["dt"], get_timezone())
             )
             click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
-            for owm_response_label in owm_to_sensor_map:
+            for sensor_specs in mapping:
                 data_source = get_or_create_owm_data_source()
-                sensor_specs = owm_to_sensor_map[owm_response_label]
-                sensor_name = str(sensor_specs["name"])
+                sensor_name = str(sensor_specs["fm_sensor_name"])
+                owm_response_label = sensor_specs["owm_sensor_name"]
                 if owm_response_label in fc:
                     weather_sensor = get_weather_sensor(
-                        owm_response_label,
+                        sensor_specs,
                         location,
                         weather_sensors,
                         max_degree_difference_for_nearest_weather_sensor,
@@ -108,13 +113,13 @@ def save_forecasts_in_db(
 
                     fc_value = fc[owm_response_label]
 
-                    # the radiation is not available in OWM -> we compute it ourselves
+                    # the irradiance is not available in OWM -> we compute it ourselves
                     if sensor_name == "irradiance":
                         fc_value = compute_irradiance(
                             location[0],
                             location[1],
                             fc_datetime,
-                            # OWM sends cloud coverage in percent, we need a ratio
+                            # OWM sends cloud cover in percent, we need a ratio
                             fc_value / 100.0,
                         )
                         data_source = get_or_create_owm_data_source_for_derived_data()
@@ -155,14 +160,13 @@ def save_forecasts_in_db(
 
 
 def get_weather_sensor(
-    owm_response_label: str,
+    sensor_specs: dict,
     location: Tuple[float, float],
     weather_sensors: Dict[str, Sensor],
     max_degree_difference_for_nearest_weather_sensor: int,
 ) -> Sensor:
     """Get the weather sensor for this own response label and location, if we haven't retrieved it already."""
-    sensor_specs = owm_to_sensor_map[owm_response_label]
-    sensor_name = str(sensor_specs["name"])
+    sensor_name = str(sensor_specs["fm_sensor_name"])
     if sensor_name in weather_sensors:
         weather_sensor = weather_sensors[sensor_name]
     else:

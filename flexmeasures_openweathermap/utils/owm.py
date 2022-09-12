@@ -32,7 +32,7 @@ def get_supported_sensor_spec(name: str) -> Optional[dict]:
 
 
 def get_supported_sensors_str() -> str:
-    """ A string - list of supported sensors, also revealing their unit"""
+    """A string - list of supported sensors, also revealing their unit"""
     return ", ".join([f"{o['name']} ({o['unit']})" for o in owm_to_sensor_map.values()])
 
 

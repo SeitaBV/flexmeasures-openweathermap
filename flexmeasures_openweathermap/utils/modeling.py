@@ -2,7 +2,7 @@ from flask import current_app
 from flexmeasures.data.config import db
 from flexmeasures.data.models.generic_assets import GenericAssetType, GenericAsset
 from flexmeasures.data.models.data_sources import DataSource
-from flexmeasures.data.queries.data_sources import get_or_create_source
+from flexmeasures.data.services.data_sources import get_or_create_source
 
 from flexmeasures_openweathermap import DEFAULT_DATA_SOURCE_NAME
 from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME

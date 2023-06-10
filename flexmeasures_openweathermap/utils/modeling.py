@@ -10,7 +10,7 @@ from flexmeasures_openweathermap import DEFAULT_WEATHER_STATION_NAME
 
 
 def get_or_create_owm_data_source() -> DataSource:
-    """Make sure we have am OWM data source"""
+    """Make sure we have an OWM data source"""
     return get_or_create_source(
         source=current_app.config.get(
             "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME

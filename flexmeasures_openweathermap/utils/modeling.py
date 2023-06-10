@@ -15,7 +15,7 @@ def get_or_create_owm_data_source() -> DataSource:
         source=current_app.config.get(
             "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
         ),
-        source_type="forecasting script",
+        source_type="forecaster",
         flush=False,
     )
 
@@ -26,7 +26,7 @@ def get_or_create_owm_data_source_for_derived_data() -> DataSource:
     )
     return get_or_create_source(
         source=f"FlexMeasures {owm_source_name}",
-        source_type="forecasting script",
+        source_type="forecaster",
         flush=False,
     )
 

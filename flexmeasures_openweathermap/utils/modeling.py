@@ -1,5 +1,7 @@
+from packaging import version
+
 from flask import current_app
-from flexmeasures import Asset, AssetType, Source
+from flexmeasures import Asset, AssetType, Source, __version__ as flexmeasures_version
 from flexmeasures.data import db
 from flexmeasures.data.services.data_sources import get_or_create_source
 
@@ -8,13 +10,19 @@ from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
 from flexmeasures_openweathermap import DEFAULT_WEATHER_STATION_NAME
 
 
+if version.parse(flexmeasures_version) < version.parse("0.13"):
+    SOURCE_TYPE = "forecasting script"
+else:
+    SOURCE_TYPE = "forecaster"
+
+
 def get_or_create_owm_data_source() -> Source:
     """Make sure we have an OWM data source"""
     return get_or_create_source(
         source=current_app.config.get(
             "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
         ),
-        source_type="forecaster",
+        source_type=SOURCE_TYPE,
         flush=False,
     )
 
@@ -25,7 +33,7 @@ def get_or_create_owm_data_source_for_derived_data() -> Source:
     )
     return get_or_create_source(
         source=f"FlexMeasures {owm_source_name}",
-        source_type="forecaster",
+        source_type=SOURCE_TYPE,
         flush=False,
     )
 

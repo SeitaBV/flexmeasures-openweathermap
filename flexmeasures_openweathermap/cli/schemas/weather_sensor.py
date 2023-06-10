@@ -8,7 +8,7 @@ from marshmallow import (
 )
 
 import pytz
-from flexmeasures.data.models.time_series import Sensor
+from flexmeasures import Sensor
 
 from ...utils.modeling import get_or_create_weather_station
 from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str

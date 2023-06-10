@@ -1,5 +1,5 @@
 import pytest
-from flexmeasures.data.models.time_series import Sensor
+from flexmeasures import Sensor
 
 from ..commands import add_weather_sensor
 from .utils import cli_params_from_dict

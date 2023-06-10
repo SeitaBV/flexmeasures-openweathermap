@@ -5,8 +5,7 @@ import pytest
 from flask_sqlalchemy import SQLAlchemy
 from flexmeasures.app import create as create_flexmeasures_app
 from flexmeasures.conftest import db, fresh_db  # noqa: F401
-from flexmeasures.data.models.time_series import Sensor
-from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
+from flexmeasures import Asset, AssetType, Sensor
 
 from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
 
@@ -43,10 +42,10 @@ def add_weather_sensors_fresh_db(fresh_db) -> Dict[str, Sensor]:  # noqa: F811
 
 def create_weather_sensors(db: SQLAlchemy):  # noqa: F811
     """Add a weather station asset with two weather sensors."""
-    weather_station_type = GenericAssetType(name=WEATHER_STATION_TYPE_NAME)
+    weather_station_type = AssetType(name=WEATHER_STATION_TYPE_NAME)
     db.session.add(weather_station_type)
 
-    weather_station = GenericAsset(
+    weather_station = Asset(
         name="Test weather station",
         generic_asset_type=weather_station_type,
         latitude=33.4843866,

@@ -1,5 +1,4 @@
 flexmeasures>=0.9.3
-requests
 pvlib
 # the following three are optional in pvlib, but we use them
 netCDF4

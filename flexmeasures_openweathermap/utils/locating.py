@@ -3,8 +3,7 @@ from typing import Tuple, List, Optional
 import click
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
-from flexmeasures.data.models.time_series import Sensor
-from flexmeasures.data.models.generic_assets import GenericAsset
+from flexmeasures import Asset, Sensor
 from flexmeasures.utils import flexmeasures_inflection
 
 from .. import WEATHER_STATION_TYPE_NAME
@@ -90,7 +89,7 @@ def find_weather_sensor_by_location_or_fail(
         n=1,
     )
     if weather_sensor is not None:
-        weather_station: GenericAsset = weather_sensor.generic_asset
+        weather_station: Asset = weather_sensor.generic_asset
         if abs(
             location[0] - weather_station.location[0]
         ) > max_degree_difference_for_nearest_weather_sensor or abs(

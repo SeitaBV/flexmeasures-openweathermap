@@ -1,7 +1,6 @@
 from flask import current_app
-from flexmeasures.data.config import db
-from flexmeasures.data.models.generic_assets import GenericAssetType, GenericAsset
-from flexmeasures.data.models.data_sources import DataSource
+from flexmeasures import Asset, AssetType, Source
+from flexmeasures.data import db
 from flexmeasures.data.services.data_sources import get_or_create_source
 
 from flexmeasures_openweathermap import DEFAULT_DATA_SOURCE_NAME
@@ -9,7 +8,7 @@ from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
 from flexmeasures_openweathermap import DEFAULT_WEATHER_STATION_NAME
 
 
-def get_or_create_owm_data_source() -> DataSource:
+def get_or_create_owm_data_source() -> Source:
     """Make sure we have an OWM data source"""
     return get_or_create_source(
         source=current_app.config.get(
@@ -20,7 +19,7 @@ def get_or_create_owm_data_source() -> DataSource:
     )
 
 
-def get_or_create_owm_data_source_for_derived_data() -> DataSource:
+def get_or_create_owm_data_source_for_derived_data() -> Source:
     owm_source_name = current_app.config.get(
         "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
     )
@@ -31,13 +30,13 @@ def get_or_create_owm_data_source_for_derived_data() -> DataSource:
     )
 
 
-def get_or_create_weather_station_type() -> GenericAssetType:
+def get_or_create_weather_station_type() -> AssetType:
     """Make sure a weather station type exists"""
-    weather_station_type = GenericAssetType.query.filter(
-        GenericAssetType.name == WEATHER_STATION_TYPE_NAME,
+    weather_station_type = AssetType.query.filter(
+        AssetType.name == WEATHER_STATION_TYPE_NAME,
     ).one_or_none()
     if weather_station_type is None:
-        weather_station_type = GenericAssetType(
+        weather_station_type = AssetType(
             name=WEATHER_STATION_TYPE_NAME,
             description="A weather station with various sensors.",
         )
@@ -45,17 +44,17 @@ def get_or_create_weather_station_type() -> GenericAssetType:
     return weather_station_type
 
 
-def get_or_create_weather_station(latitude: float, longitude: float) -> GenericAsset:
+def get_or_create_weather_station(latitude: float, longitude: float) -> Asset:
     """Make sure a weather station exists at this location."""
     station_name = current_app.config.get(
         "WEATHER_STATION_NAME", DEFAULT_WEATHER_STATION_NAME
     )
-    weather_station = GenericAsset.query.filter(
-        GenericAsset.latitude == latitude, GenericAsset.longitude == longitude
+    weather_station = Asset.query.filter(
+        Asset.latitude == latitude, Asset.longitude == longitude
     ).one_or_none()
     if weather_station is None:
         weather_station_type = get_or_create_weather_station_type()
-        weather_station = GenericAsset(
+        weather_station = Asset(
             name=station_name,
             generic_asset_type=weather_station_type,
             latitude=latitude,

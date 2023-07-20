@@ -114,31 +114,34 @@ def save_forecasts_in_db(
                         weather_sensors,
                         max_degree_difference_for_nearest_weather_sensor,
                     )
-                    if weather_sensor not in db_forecasts.keys():
-                        db_forecasts[weather_sensor] = []
+                    if weather_sensor is not None:
+                        if weather_sensor not in db_forecasts.keys():
+                            db_forecasts[weather_sensor] = []
 
-                    fc_value = fc[owm_response_label]
+                        fc_value = fc[owm_response_label]
 
-                    # the irradiance is not available in OWM -> we compute it ourselves
-                    if sensor_name == "irradiance":
-                        fc_value = compute_irradiance(
-                            location[0],
-                            location[1],
-                            fc_datetime,
-                            # OWM sends cloud cover in percent, we need a ratio
-                            fc_value / 100.0,
+                        # the irradiance is not available in OWM -> we compute it ourselves
+                        if sensor_name == "irradiance":
+                            fc_value = compute_irradiance(
+                                location[0],
+                                location[1],
+                                fc_datetime,
+                                # OWM sends cloud cover in percent, we need a ratio
+                                fc_value / 100.0,
+                            )
+                            data_source = (
+                                get_or_create_owm_data_source_for_derived_data()
+                            )
+
+                        db_forecasts[weather_sensor].append(
+                            TimedBelief(
+                                event_start=fc_datetime,
+                                belief_time=now,
+                                event_value=fc_value,
+                                sensor=weather_sensor,
+                                source=data_source,
+                            )
                         )
-                        data_source = get_or_create_owm_data_source_for_derived_data()
-
-                    db_forecasts[weather_sensor].append(
-                        TimedBelief(
-                            event_start=fc_datetime,
-                            belief_time=now,
-                            event_value=fc_value,
-                            sensor=weather_sensor,
-                            source=data_source,
-                        )
-                    )
                 else:
                     # we will not fail here, but issue a warning
                     msg = "No label '%s' in response data for time %s" % (
@@ -182,7 +185,10 @@ def get_weather_sensor(
             sensor_name=sensor_name,
         )
         weather_sensors[sensor_name] = weather_sensor
-    if weather_sensor.event_resolution != sensor_specs["event_resolution"]:
+    if (
+        weather_sensor is not None
+        and weather_sensor.event_resolution != sensor_specs["event_resolution"]
+    ):
         raise Exception(
             f"[FLEXMEASURES-OWM] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
         )

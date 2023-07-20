@@ -52,7 +52,9 @@ def call_openweatherapi(
     api_version = "3.0"
     check_openweathermap_version(api_version)
     query_str = f"lat={location[0]}&lon={location[1]}&units=metric&exclude=minutely,daily,alerts&appid={api_key}"
-    res = requests.get(f"http://api.openweathermap.org/data/{api_version}/onecall?{query_str}")
+    res = requests.get(
+        f"http://api.openweathermap.org/data/{api_version}/onecall?{query_str}"
+    )
     assert (
         res.status_code == 200
     ), f"OpenWeatherMap returned status code {res.status_code}: {res.text}"

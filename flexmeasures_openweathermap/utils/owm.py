@@ -49,8 +49,10 @@ def call_openweatherapi(
     See https://openweathermap.org/api/one-call-api for docs.
     Note that the first forecast is about the current hour.
     """
+    api_version = "3.0"
+    check_openweathermap_version(api_version)
     query_str = f"lat={location[0]}&lon={location[1]}&units=metric&exclude=minutely,daily,alerts&appid={api_key}"
-    res = requests.get(f"http://api.openweathermap.org/data/2.5/onecall?{query_str}")
+    res = requests.get(f"http://api.openweathermap.org/data/{api_version}/onecall?{query_str}")
     assert (
         res.status_code == 200
     ), f"OpenWeatherMap returned status code {res.status_code}: {res.text}"
@@ -211,3 +213,11 @@ def save_forecasts_as_json(
         )
         with open(forecasts_file, "w") as outfile:
             json.dump(forecasts, outfile)
+
+
+def check_openweathermap_version(api_version: str):
+    supported_versions = ["2.5", "3.0"]
+    if api_version not in supported_versions:
+        raise Warning(
+            f"Warning: This plugin may not be fully compatible with OpenWeatherMap API version {api_version}."
+        )

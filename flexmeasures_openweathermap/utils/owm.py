@@ -218,6 +218,6 @@ def save_forecasts_as_json(
 def check_openweathermap_version(api_version: str):
     supported_versions = ["2.5", "3.0"]
     if api_version not in supported_versions:
-        raise Warning(
-            f"Warning: This plugin may not be fully compatible with OpenWeatherMap API version {api_version}."
+        current_app.logger.warning(
+            f"This plugin may not be fully compatible with OpenWeatherMap API version {api_version}."
         )

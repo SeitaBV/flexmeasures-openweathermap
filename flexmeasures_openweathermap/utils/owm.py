@@ -20,6 +20,9 @@ from .modeling import (
 )
 from .radiating import compute_irradiance
 
+    
+API_VERSION = "3.0"
+
 
 def get_supported_sensor_spec(name: str) -> Optional[dict]:
     """
@@ -49,11 +52,10 @@ def call_openweatherapi(
     See https://openweathermap.org/api/one-call-api for docs.
     Note that the first forecast is about the current hour.
     """
-    api_version = "3.0"
-    check_openweathermap_version(api_version)
+    check_openweathermap_version(API_VERSION)
     query_str = f"lat={location[0]}&lon={location[1]}&units=metric&exclude=minutely,daily,alerts&appid={api_key}"
     res = requests.get(
-        f"http://api.openweathermap.org/data/{api_version}/onecall?{query_str}"
+        f"http://api.openweathermap.org/data/{API_VERSION}/onecall?{query_str}"
     )
     assert (
         res.status_code == 200
@@ -221,5 +223,5 @@ def check_openweathermap_version(api_version: str):
     supported_versions = ["2.5", "3.0"]
     if api_version not in supported_versions:
         current_app.logger.warning(
-            f"This plugin may not be fully compatible with OpenWeatherMap API version {api_version}."
+            f"This plugin may not be fully compatible with OpenWeatherMap API version {api_version}. We tested with versions {supported_versions}"
         )

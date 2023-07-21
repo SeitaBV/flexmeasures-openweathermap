@@ -12,7 +12,7 @@ from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_n
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
-from .locating import find_weather_sensor_by_location_or_fail
+from .locating import find_weather_sensor_by_location
 from ..sensor_specs import mapping
 from .modeling import (
     get_or_create_owm_data_source,
@@ -20,7 +20,7 @@ from .modeling import (
 )
 from .radiating import compute_irradiance
 
-    
+
 API_VERSION = "3.0"
 
 
@@ -115,6 +115,9 @@ def save_forecasts_in_db(
                         max_degree_difference_for_nearest_weather_sensor,
                     )
                     if weather_sensor is not None:
+                        click.echo(
+                            f"Found pre-configured weather sensor {weather_sensor.name} ..."
+                        )
                         if weather_sensor not in db_forecasts.keys():
                             db_forecasts[weather_sensor] = []
 
@@ -173,13 +176,13 @@ def get_weather_sensor(
     location: Tuple[float, float],
     weather_sensors: Dict[str, Sensor],
     max_degree_difference_for_nearest_weather_sensor: int,
-) -> Sensor:
+) -> Sensor | None:
     """Get the weather sensor for this own response label and location, if we haven't retrieved it already."""
     sensor_name = str(sensor_specs["fm_sensor_name"])
     if sensor_name in weather_sensors:
         weather_sensor = weather_sensors[sensor_name]
     else:
-        weather_sensor = find_weather_sensor_by_location_or_fail(
+        weather_sensor = find_weather_sensor_by_location(
             location,
             max_degree_difference_for_nearest_weather_sensor,
             sensor_name=sensor_name,
@@ -189,7 +192,7 @@ def get_weather_sensor(
         weather_sensor is not None
         and weather_sensor.event_resolution != sensor_specs["event_resolution"]
     ):
-        raise Exception(
+        current_app.logger.warning(
             f"[FLEXMEASURES-OWM] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
         )
     return weather_sensor

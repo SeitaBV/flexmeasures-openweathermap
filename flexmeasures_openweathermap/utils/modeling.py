@@ -1,7 +1,8 @@
 from packaging import version
 
 from flask import current_app
-from flexmeasures import Asset, AssetType, Source, __version__ as flexmeasures_version
+from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
+from flexmeasures import Source, __version__ as flexmeasures_version
 from flexmeasures.data import db
 from flexmeasures.data.services.data_sources import get_or_create_source
 
@@ -38,13 +39,13 @@ def get_or_create_owm_data_source_for_derived_data() -> Source:
     )
 
 
-def get_or_create_weather_station_type() -> AssetType:
+def get_or_create_weather_station_type() -> GenericAssetType:
     """Make sure a weather station type exists"""
-    weather_station_type = AssetType.query.filter(
-        AssetType.name == WEATHER_STATION_TYPE_NAME,
+    weather_station_type = GenericAssetType.query.filter(
+        GenericAssetType.name == WEATHER_STATION_TYPE_NAME,
     ).one_or_none()
     if weather_station_type is None:
-        weather_station_type = AssetType(
+        weather_station_type = GenericAssetType(
             name=WEATHER_STATION_TYPE_NAME,
             description="A weather station with various sensors.",
         )
@@ -52,17 +53,17 @@ def get_or_create_weather_station_type() -> AssetType:
     return weather_station_type
 
 
-def get_or_create_weather_station(latitude: float, longitude: float) -> Asset:
+def get_or_create_weather_station(latitude: float, longitude: float) -> GenericAsset:
     """Make sure a weather station exists at this location."""
     station_name = current_app.config.get(
         "WEATHER_STATION_NAME", DEFAULT_WEATHER_STATION_NAME
     )
-    weather_station = Asset.query.filter(
-        Asset.latitude == latitude, Asset.longitude == longitude
+    weather_station = GenericAsset.query.filter(
+        GenericAsset.latitude == latitude, GenericAsset.longitude == longitude
     ).one_or_none()
     if weather_station is None:
         weather_station_type = get_or_create_weather_station_type()
-        weather_station = Asset(
+        weather_station = GenericAsset(
             name=station_name,
             generic_asset_type=weather_station_type,
             latitude=latitude,

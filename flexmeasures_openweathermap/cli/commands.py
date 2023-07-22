@@ -12,7 +12,7 @@ from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
 )
-from ..utils.locating import get_locations
+from ..utils.locating import get_locations, get_asset_id_location
 from ..utils.filing import make_file_path
 from ..utils.owm import (
     save_forecasts_in_db,
@@ -95,11 +95,17 @@ def add_weather_sensor(**args):
 @click.option(
     "--location",
     type=str,
-    required=True,
+    required=False,
     help='Measurement location(s). "latitude,longitude" or "top-left-latitude,top-left-longitude:'
     'bottom-right-latitude,bottom-right-longitude." The first format defines one location to measure.'
     " The second format defines a region of interest with several (>=4) locations"
     ' (see also the "method" and "num_cells" parameters for details on how to use this feature).',
+)
+@click.option(
+    "--asset-id",
+    type=int,
+    required=False,
+    help='Get location "latitude,longitude" for a given asset',
 )
 @click.option(
     "--store-in-db/--store-as-json-files",
@@ -125,7 +131,7 @@ def add_weather_sensor(**args):
     help="Name of the region (will create sub-folder if you store json files).",
 )
 @task_with_status_report("get-openweathermap-forecasts")
-def collect_weather_data(location, store_in_db, num_cells, method, region):
+def collect_weather_data(location, asset_id, store_in_db, num_cells, method, region):
     """
     Collect weather forecasts from the OpenWeatherMap API.
     This will be done for one or more locations, for which we first identify relevant weather stations.
@@ -139,7 +145,10 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
         raise Exception(
             "[FLEXMEASURES-OWM] Setting OPENWEATHERMAP_API_KEY not available."
         )
-    locations = get_locations(location, num_cells, method)
+    if asset_id is not None:
+        locations = get_asset_id_location(asset_id)
+    else:
+        locations = get_locations(location, num_cells, method)
 
     # Save the results
     if store_in_db:

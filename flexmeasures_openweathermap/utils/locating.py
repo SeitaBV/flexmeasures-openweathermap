@@ -7,7 +7,7 @@ from flask import current_app
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
 from flexmeasures import Sensor
-from flexmeasures.data.models.generic_assets import GenericAsset
+from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
 from flexmeasures.utils import flexmeasures_inflection
 
 from .. import WEATHER_STATION_TYPE_NAME
@@ -111,13 +111,21 @@ def find_weather_sensor_by_location(
     return weather_sensor
 
 
-def get_asset_id_location(asset_id: int) -> List[Tuple[float, float]]:
+def get_location_by_asset_id(asset_id: int) -> Tuple[float, float]:
     """Get location for forecasting by passing an asset id"""
     asset = GenericAsset.query.filter(
         GenericAsset.generic_asset_type_id == asset_id
     ).one_or_none()
-    if asset is None:
+    if asset is not None:
+        asset_type = GenericAssetType.query.filter(
+            GenericAssetType.id == asset.generic_asset_type_id
+        ).one_or_none()
+        if asset_type.name != WEATHER_STATION_TYPE_NAME:
+            raise Exception(
+                "[FLEXMEASURES-OWM] Generic asset type name and weather station type name are not the same."
+            )
+    else:
         raise Exception(
             "[FLEXMEASURES-OWM] No asset found for the given asset id %s." % asset_id
         )
-    return [(asset.latitude, asset.longitude)]
+    return (asset.latitude, asset.longitude)

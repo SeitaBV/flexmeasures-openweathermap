@@ -12,7 +12,7 @@ from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
 )
-from ..utils.locating import get_locations, get_asset_id_location
+from ..utils.locating import get_locations, get_location_by_asset_id
 from ..utils.filing import make_file_path
 from ..utils.owm import (
     save_forecasts_in_db,
@@ -105,7 +105,7 @@ def add_weather_sensor(**args):
     "--asset-id",
     type=int,
     required=False,
-    help='Get location "latitude,longitude" for a given asset',
+    help="ID of a weather station asset - forecasts will be gotten for its location. If present, --location will be ignored."
 )
 @click.option(
     "--store-in-db/--store-as-json-files",
@@ -146,9 +146,13 @@ def collect_weather_data(location, asset_id, store_in_db, num_cells, method, reg
             "[FLEXMEASURES-OWM] Setting OPENWEATHERMAP_API_KEY not available."
         )
     if asset_id is not None:
-        locations = get_asset_id_location(asset_id)
-    else:
+        locations = [(get_location_by_asset_id(asset_id))]
+    elif location is not None:
         locations = get_locations(location, num_cells, method)
+    else:
+        raise Warning(
+            "[FLEXMEASURES-OWM] Pass either location or asset-id to get weather forecasts."
+        )
 
     # Save the results
     if store_in_db:

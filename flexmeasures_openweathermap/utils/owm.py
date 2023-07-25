@@ -103,8 +103,8 @@ def save_forecasts_in_db(
                 datetime.fromtimestamp(fc["dt"], get_timezone())
             )
             click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
+            data_source = get_or_create_owm_data_source()
             for sensor_specs in mapping:
-                data_source = get_or_create_owm_data_source()
                 sensor_name = str(sensor_specs["fm_sensor_name"])
                 owm_response_label = sensor_specs["owm_sensor_name"]
                 if owm_response_label in fc:
@@ -192,7 +192,7 @@ def get_weather_sensor(
         weather_sensor is not None
         and weather_sensor.event_resolution != sensor_specs["event_resolution"]
     ):
-        current_app.logger.warning(
+        raise Exception(
             f"[FLEXMEASURES-OWM] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
         )
     return weather_sensor

@@ -116,15 +116,11 @@ def get_location_by_asset_id(asset_id: int) -> Tuple[float, float]:
     asset = GenericAsset.query.filter(
         GenericAsset.generic_asset_type_id == asset_id
     ).one_or_none()
-    if asset is not None:
-        asset_type = GenericAssetType.query.filter(
-            GenericAssetType.id == asset.generic_asset_type_id
-        ).one_or_none()
-        if asset_type.name != WEATHER_STATION_TYPE_NAME:
-            raise Exception(
-                "[FLEXMEASURES-OWM] Generic asset type name and weather station type name are not the same."
-            )
-    else:
+    if asset.generic_asset_type.name != WEATHER_STATION_TYPE_NAME:
+        raise Exception(
+            "[FLEXMEASURES-OWM] Generic asset type name and weather station type name are not the same."
+        )
+    if asset is None:
         raise Exception(
             "[FLEXMEASURES-OWM] No asset found for the given asset id %s." % asset_id
         )

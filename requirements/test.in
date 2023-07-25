@@ -5,6 +5,6 @@ pytest-flask
 pytest-sugar
 pytest-cov
 # lets tests run successfully in containers
-fakeredis
+fakeredis==2.16.0
 # required with fakeredis, maybe because we use rq
 lupa

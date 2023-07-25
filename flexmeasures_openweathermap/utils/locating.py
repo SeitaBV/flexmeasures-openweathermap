@@ -115,7 +115,7 @@ def get_location_by_asset_id(asset_id: int) -> Tuple[float, float]:
     ).one_or_none()
     if asset.generic_asset_type.name != WEATHER_STATION_TYPE_NAME:
         raise Exception(
-            "[FLEXMEASURES-OWM] Generic asset type name and weather station type name are not the same."
+            f"[FLEXMEASURES-OWM] Asset {asset.generic_asset_type.name} is not found with the default weather station type name {WEATHER_STATION_TYPE_NAME}."
         )
     if asset is None:
         raise Exception(

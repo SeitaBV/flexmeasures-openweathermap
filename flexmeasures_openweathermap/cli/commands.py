@@ -146,7 +146,7 @@ def collect_weather_data(location, asset_id, store_in_db, num_cells, method, reg
             "[FLEXMEASURES-OWM] Setting OPENWEATHERMAP_API_KEY not available."
         )
     if asset_id is not None:
-        locations = [(get_location_by_asset_id(asset_id))]
+        locations = [get_location_by_asset_id(asset_id)]
     elif location is not None:
         locations = get_locations(location, num_cells, method)
     else:

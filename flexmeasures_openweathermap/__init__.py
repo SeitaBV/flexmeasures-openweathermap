@@ -29,7 +29,7 @@ DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
 DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
 DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-OWM)"
 WEATHER_STATION_TYPE_NAME = "weather station"
-DEFAULT_DEGREE_DIFFERENCE = 2
+DEFAULT_MINIMAL_WEATHER_STATIONS = 2
 
 __version__ = "0.1"
 __settings__ = {
@@ -50,7 +50,7 @@ __settings__ = {
         level="debug",
     ),
     "MINIMAL_WEATHER_STATIONS": dict(
-        descripion=f"Number of the closest weather stations to the location, defaults to '{DEFAULT_DEGREE_DIFFERENCE}'",
+        descripion=f"Number of the closest weather stations to the location, defaults to '{DEFAULT_MINIMAL_WEATHER_STATIONS}'",
         level="debug",
     ),
 }

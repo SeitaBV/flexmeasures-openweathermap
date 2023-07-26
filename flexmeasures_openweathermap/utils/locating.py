@@ -7,7 +7,7 @@ from flask import current_app
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
 from flexmeasures import Sensor
-from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
+from flexmeasures.data.models.generic_assets import GenericAsset
 from flexmeasures.utils import flexmeasures_inflection
 
 from .. import WEATHER_STATION_TYPE_NAME

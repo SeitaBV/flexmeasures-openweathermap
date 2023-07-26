@@ -20,7 +20,7 @@ from .modeling import (
 )
 from .radiating import compute_irradiance
 
-    
+
 API_VERSION = "3.0"
 
 

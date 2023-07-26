@@ -39,16 +39,20 @@ supported_sensors_list = ", ".join(
     required=True,
     help=f"Name of the sensor. Has to be from the supported list ({supported_sensors_list})",
 )
-# @click.option("--generic-asset-id", required=False, help="The asset id of the weather station (you can also give its location).")
+@click.option(
+    "--asset-id",
+    required=False,
+    help="The asset id of the weather station (you can also give its location).",
+)
 @click.option(
     "--latitude",
-    required=True,
+    required=False,
     type=float,
     help="Latitude of where you want to measure.",
 )
 @click.option(
     "--longitude",
-    required=True,
+    required=False,
     type=float,
     help="Longitude of where you want to measure.",
 )

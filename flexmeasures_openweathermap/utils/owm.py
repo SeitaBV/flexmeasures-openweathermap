@@ -12,7 +12,7 @@ from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_n
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
-from flexmeasures_openweathermap import DEFAULT_MINIMAL_WEATHER_STATIONS
+from flexmeasures_openweathermap import DEFAULT_MINIMAL_DISTANCE_DEGREE
 
 from .locating import find_weather_sensor_by_location_or_fail
 from ..sensor_specs import mapping
@@ -80,7 +80,7 @@ def save_forecasts_in_db(
     click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
     click.echo("[FLEXMEASURES-OWM] -----------------------")
     max_degree_difference_for_nearest_weather_sensor = current_app.config.get(
-        "MINIMAL_WEATHER_STATIONS", DEFAULT_MINIMAL_WEATHER_STATIONS
+        "MINIMAL_DISTANCE_DEGREE", DEFAULT_MINIMAL_DISTANCE_DEGREE
     )
     for location in locations:
         click.echo("[FLEXMEASURES] %s, %s" % location)

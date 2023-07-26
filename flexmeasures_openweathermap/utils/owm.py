@@ -14,6 +14,7 @@ from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_n
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
+from flexmeasures_openweathermap import DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE
 from .locating import find_weather_sensor_by_location
 from ..sensor_specs import mapping
 from .modeling import (
@@ -72,7 +73,6 @@ def call_openweatherapi(
 def save_forecasts_in_db(
     api_key: str,
     locations: List[Tuple[float, float]],
-    max_degree_difference_for_nearest_weather_sensor: int = 2,
 ):
     """Process the response from OpenWeatherMap API into timed beliefs.
     Collects all forecasts for all locations and all sensors at all locations, then bulk-saves them.
@@ -80,7 +80,10 @@ def save_forecasts_in_db(
     click.echo("[FLEXMEASURES-OWM] Getting weather forecasts:")
     click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
     click.echo("[FLEXMEASURES-OWM] -----------------------")
-
+    max_degree_difference_for_nearest_weather_sensor = current_app.config.get(
+        "OPENWEATHERMAP_MAXIMAL_DEGREE_LOCATION_DISTANCE",
+        DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE,
+    )
     for location in locations:
         click.echo("[FLEXMEASURES] %s, %s" % location)
         weather_sensors: Dict[

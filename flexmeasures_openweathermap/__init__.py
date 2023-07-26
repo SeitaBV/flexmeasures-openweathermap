@@ -29,7 +29,7 @@ DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
 DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
 DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-OWM)"
 WEATHER_STATION_TYPE_NAME = "weather station"
-DEFAULT_MINIMAL_DISTANCE_DEGREE = 2
+DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE = 1
 
 __version__ = "0.1"
 __settings__ = {
@@ -49,8 +49,8 @@ __settings__ = {
         description=f"Name of the weather station asset, defaults to '{DEFAULT_WEATHER_STATION_NAME}'",
         level="debug",
     ),
-    "MINIMAL_DISTANCE_DEGREE": dict(
-        descripion=f"Number of the minimum distance degree for weather station, defaults to '{DEFAULT_MINIMAL_DISTANCE_DEGREE}'",
+    "OPENWEATHERMAP_MAXIMAL_DEGREE_LOCATION_DISTANCE": dict(
+        descripion=f"Maximum distance (in degrees latitude & longitude) for weather stations from forecast location, defaults to {DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE}",
         level="debug",
     ),
 }

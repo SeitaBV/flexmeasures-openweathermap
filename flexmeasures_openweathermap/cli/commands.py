@@ -11,7 +11,7 @@ from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
-    get_asset_id_weather_station,
+    get_weather_station_by_asset_id,
 )
 from ..utils.locating import get_locations, get_location_by_asset_id
 from ..utils.filing import make_file_path
@@ -76,7 +76,7 @@ def add_weather_sensor(**args):
         )
         raise click.Abort
     if args["asset_id"] is not None:
-        weather_station = get_asset_id_weather_station(args["asset_id"])
+        weather_station = get_weather_station_by_asset_id(args["asset_id"])
     elif args["latitude"] is not None and args["longitude"] is not None:
         weather_station = get_or_create_weather_station(
             args["latitude"], args["longitude"]

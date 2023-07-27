@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple, List, Optional
 
 import click
+from flask import current_app
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
 from flexmeasures import Sensor
@@ -99,11 +100,11 @@ def find_weather_sensor_by_location(
             location[1] - weather_station.location[1]
             > max_degree_difference_for_nearest_weather_sensor
         ):
-            raise Warning(
+            current_app.logger.warning(
                 f"[FLEXMEASURES-OWM] No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:
-        raise Warning(
+        current_app.logger.warning(
             "[FLEXMEASURES-OWM] No weather sensor set up yet for measuring %s. Try the register-weather-sensor CLI task."
             % sensor_name
         )

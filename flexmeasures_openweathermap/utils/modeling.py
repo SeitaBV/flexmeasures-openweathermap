@@ -73,7 +73,7 @@ def get_or_create_weather_station(latitude: float, longitude: float) -> GenericA
     return weather_station
 
 
-def get_asset_id_weather_station(asset_id: int) -> GenericAsset:
+def get_weather_station_by_asset_id(asset_id: int) -> GenericAsset:
     weather_station = GenericAsset.query.filter(
         GenericAsset.generic_asset_type_id == asset_id
     ).one_or_none()

@@ -12,7 +12,7 @@ from flexmeasures import Sensor
 
 from ...utils.modeling import (
     get_or_create_weather_station,
-    get_asset_id_weather_station,
+    get_weather_station_by_asset_id,
 )
 from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str
 
@@ -55,7 +55,7 @@ class WeatherSensorSchema(Schema):
                 data["latitude"], data["longitude"]
             )
         elif data["asset_id"] is not None:
-            weather_station = get_asset_id_weather_station(data["asset_id"])
+            weather_station = get_weather_station_by_asset_id(data["asset_id"])
         else:
             return
 

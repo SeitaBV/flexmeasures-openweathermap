@@ -71,3 +71,20 @@ def get_or_create_weather_station(latitude: float, longitude: float) -> GenericA
         )
         db.session.add(weather_station)
     return weather_station
+
+
+def get_asset_id_weather_station(asset_id: int) -> GenericAsset:
+    weather_station = GenericAsset.query.filter(
+        GenericAsset.generic_asset_type_id == asset_id
+    ).one_or_none()
+    if weather_station is None:
+        raise Exception(
+            f"[FLEXMEASURES-OWM] Weather station is not present for the given asset id '{asset_id}'."
+        )
+
+    if weather_station.latitude is None or weather_station.longitude is None:
+        raise Exception(
+            f"[FLEXMEASURES-OWM] Weather station {weather_station} is missing location information [Latitude, Longitude]."
+        )
+
+    return weather_station

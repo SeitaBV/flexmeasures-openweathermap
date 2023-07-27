@@ -10,7 +10,10 @@ from marshmallow import (
 import pytz
 from flexmeasures import Sensor
 
-from ...utils.modeling import get_or_create_weather_station
+from ...utils.modeling import (
+    get_or_create_weather_station,
+    get_asset_id_weather_station,
+)
 from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str
 
 
@@ -22,8 +25,13 @@ class WeatherSensorSchema(Schema):
 
     name = fields.Str(required=True)
     timezone = fields.Str()
-    latitude = fields.Float(required=True, validate=validate.Range(min=-90, max=90))
-    longitude = fields.Float(required=True, validate=validate.Range(min=-180, max=180))
+    asset_id = fields.Int(required=False, allow_none=True)
+    latitude = fields.Float(
+        required=False, validate=validate.Range(min=-90, max=90), allow_none=True
+    )
+    longitude = fields.Float(
+        required=False, validate=validate.Range(min=-180, max=180), allow_none=True
+    )
 
     @validates("name")
     def validate_name_is_supported(self, name: str):
@@ -35,11 +43,17 @@ class WeatherSensorSchema(Schema):
 
     @validates_schema(skip_on_field_errors=False)
     def validate_name_is_unique_in_weather_station(self, data, **kwargs):
-        if "name" not in data or "latitude" not in data or "longitude" not in data:
+        if "name" not in data:
             return  # That's a different validation problem
-        weather_station = get_or_create_weather_station(
-            data["latitude"], data["longitude"]
-        )
+        if data["latitude"] is not None and data["longitude"] is not None:
+            weather_station = get_or_create_weather_station(
+                data["latitude"], data["longitude"]
+            )
+        elif data["asset_id"] is not None:
+            weather_station = get_asset_id_weather_station(data["asset_id"])
+        else:
+            return
+
         sensor = Sensor.query.filter(
             Sensor.name == data["name"].lower(),
             Sensor.generic_asset == weather_station,

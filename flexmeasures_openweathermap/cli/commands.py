@@ -11,6 +11,7 @@ from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
+    get_asset_id_weather_station,
 )
 from ..utils.locating import get_locations, get_location_by_asset_id
 from ..utils.filing import make_file_path
@@ -42,6 +43,7 @@ supported_sensors_list = ", ".join(
 @click.option(
     "--asset-id",
     required=False,
+    type=int,
     help="The asset id of the weather station (you can also give its location).",
 )
 @click.option(
@@ -73,8 +75,16 @@ def add_weather_sensor(**args):
             f"[FLEXMEASURES-OWM] Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
         )
         raise click.Abort
-
-    weather_station = get_or_create_weather_station(args["latitude"], args["longitude"])
+    if args["asset_id"] is not None:
+        weather_station = get_asset_id_weather_station(args["asset_id"])
+    elif args["latitude"] is not None and args["longitude"] is not None:
+        weather_station = get_or_create_weather_station(
+            args["latitude"], args["longitude"]
+        )
+    else:
+        raise Exception(
+            "Arguments are missing to register a weather sensor. Provide either '--asset-id' or ('--latitude' and '--longitude')."
+        )
 
     fm_sensor_specs = get_supported_sensor_spec(args["name"])
     fm_sensor_specs["generic_asset"] = weather_station

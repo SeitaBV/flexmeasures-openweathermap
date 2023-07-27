@@ -43,7 +43,12 @@ class WeatherSensorSchema(Schema):
 
     @validates_schema(skip_on_field_errors=False)
     def validate_name_is_unique_in_weather_station(self, data, **kwargs):
-        if "name" not in data:
+        if (
+            "name" not in data
+            or "latitude" not in data
+            or "longitude" not in data
+            or "asset_id" not in data
+        ):
             return  # That's a different validation problem
         if data["latitude"] is not None and data["longitude"] is not None:
             weather_station = get_or_create_weather_station(

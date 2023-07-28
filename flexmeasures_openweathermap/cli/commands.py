@@ -22,7 +22,6 @@ from ..utils.owm import (
 )
 from ..sensor_specs import mapping
 
-
 """
 TODO: allow to also pass an asset ID or name for the weather station (instead of location) to both commands?
       See https://github.com/SeitaBV/flexmeasures-openweathermap/issues/2
@@ -86,22 +85,31 @@ def add_weather_sensor(**args):
             "Arguments are missing to register a weather sensor. Provide either '--asset-id' or ('--latitude' and '--longitude')."
         )
 
-    fm_sensor_specs = get_supported_sensor_spec(args["name"])
-    fm_sensor_specs["generic_asset"] = weather_station
-    fm_sensor_specs["timezone"] = args["timezone"]
-    fm_sensor_specs["name"] = fm_sensor_specs.pop("fm_sensor_name")
-    fm_sensor_specs.pop("owm_sensor_name")
-    sensor = Sensor(**fm_sensor_specs)
-    sensor.attributes = fm_sensor_specs["attributes"]
+    sensor = Sensor.query.filter(
+        Sensor.name == args["name"].lower(),
+        Sensor.generic_asset == weather_station,
+    ).one_or_none()
+    if sensor:
+        click.echo(
+            f"[FLEXMEASURES-OWM] A '{args['name']}' weather sensor already exists at this weather station (the station's ID is {weather_station.id})."
+        )
+    else:
+        fm_sensor_specs = get_supported_sensor_spec(args["name"])
+        fm_sensor_specs["generic_asset"] = weather_station
+        fm_sensor_specs["timezone"] = args["timezone"]
+        fm_sensor_specs["name"] = fm_sensor_specs.pop("fm_sensor_name")
+        fm_sensor_specs.pop("owm_sensor_name")
+        sensor = Sensor(**fm_sensor_specs)
+        sensor.attributes = fm_sensor_specs["attributes"]
 
-    db.session.add(sensor)
-    db.session.commit()
-    click.echo(
-        f"[FLEXMEASURES-OWM] Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
-    )
-    click.echo(
-        f"[FLEXMEASURES-OWM] You can access this sensor at its entity address {sensor.entity_address}"
-    )
+        db.session.add(sensor)
+        db.session.commit()
+        click.echo(
+            f"[FLEXMEASURES-OWM] Successfully created weather sensor with ID {sensor.id}, at weather station with ID {weather_station.id}"
+        )
+        click.echo(
+            f"[FLEXMEASURES-OWM] You can access this sensor at its entity address {sensor.entity_address}"
+        )
 
 
 @flexmeasures_openweathermap_bp.cli.command("get-weather-forecasts")

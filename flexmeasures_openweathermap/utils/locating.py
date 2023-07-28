@@ -100,7 +100,7 @@ def find_weather_sensor_by_location(
             location[1] - weather_station.location[1]
             > max_degree_difference_for_nearest_weather_sensor
         ):
-            current_app.logger.warning(
+            raise Warning(
                 f"[FLEXMEASURES-OWM] No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:

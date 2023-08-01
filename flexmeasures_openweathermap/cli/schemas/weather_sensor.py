@@ -1,7 +1,6 @@
 from marshmallow import (
     Schema,
     validates,
-    validates_schema,
     ValidationError,
     fields,
     validate,
@@ -35,11 +34,6 @@ class WeatherSensorSchema(Schema):
         raise ValidationError(
             f"Weather sensors with name '{name}' are not supported by flexmeasures-openweathermap. For now, the following is supported: [{get_supported_sensors_str()}]"
         )
-
-    @validates_schema(skip_on_field_errors=False)
-    def validate_name_is_given(self, data, **kwargs):
-        if "name" not in data:
-            return  # That's a different validation problem
 
     @validates("timezone")
     def validate_timezone(self, timezone: str):

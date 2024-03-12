@@ -6,7 +6,8 @@ import click
 from flask import current_app
 
 from flexmeasures.utils.grid_cells import LatLngGrid, get_cell_nums
-from flexmeasures import Asset, Sensor
+from flexmeasures import Sensor
+from flexmeasures.data.models.generic_assets import GenericAsset
 from flexmeasures.utils import flexmeasures_inflection
 
 from .. import WEATHER_STATION_TYPE_NAME
@@ -92,7 +93,7 @@ def find_weather_sensor_by_location(
         n=1,
     )
     if weather_sensor is not None:
-        weather_station: Asset = weather_sensor.generic_asset
+        weather_station: GenericAsset = weather_sensor.generic_asset
         if abs(
             location[0] - weather_station.location[0]
         ) > max_degree_difference_for_nearest_weather_sensor or abs(
@@ -100,7 +101,7 @@ def find_weather_sensor_by_location(
             > max_degree_difference_for_nearest_weather_sensor
         ):
             current_app.logger.warning(
-                f"[FLEXMEASURES-OWM] No sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
+                f"[FLEXMEASURES-OWM] We found a weather station, but no sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
             )
     else:
         current_app.logger.warning(
@@ -108,3 +109,19 @@ def find_weather_sensor_by_location(
             % sensor_name
         )
     return weather_sensor
+
+
+def get_location_by_asset_id(asset_id: int) -> Tuple[float, float]:
+    """Get location for forecasting by passing an asset id"""
+    asset = GenericAsset.query.filter(
+        GenericAsset.generic_asset_type_id == asset_id
+    ).one_or_none()
+    if asset.generic_asset_type.name != WEATHER_STATION_TYPE_NAME:
+        raise Exception(
+            f"Asset {asset} does not seem to be a weather station we should use ― we expect an asset with type '{WEATHER_STATION_TYPE_NAME}'."
+        )
+    if asset is None:
+        raise Exception(
+            "[FLEXMEASURES-OWM] No asset found for the given asset id %s." % asset_id
+        )
+    return (asset.latitude, asset.longitude)

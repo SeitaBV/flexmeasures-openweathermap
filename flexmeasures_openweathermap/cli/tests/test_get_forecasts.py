@@ -66,4 +66,4 @@ def test_get_weather_forecasts_no_close_sensors(
         assert (
             "Reported task get-openweathermap-forecasts status as True" in result.output
         )
-        assert "No sufficiently close weather sensor found" in caplog.text
+        assert "no sufficiently close weather sensor found" in caplog.text

@@ -11,8 +11,9 @@ from .. import flexmeasures_openweathermap_bp
 from .schemas.weather_sensor import WeatherSensorSchema
 from ..utils.modeling import (
     get_or_create_weather_station,
+    get_weather_station_by_asset_id,
 )
-from ..utils.locating import get_locations
+from ..utils.locating import get_locations, get_location_by_asset_id
 from ..utils.filing import make_file_path
 from ..utils.owm import (
     save_forecasts_in_db,
@@ -20,7 +21,6 @@ from ..utils.owm import (
     get_supported_sensor_spec,
 )
 from ..sensor_specs import mapping
-
 
 """
 TODO: allow to also pass an asset ID or name for the weather station (instead of location) to both commands?
@@ -39,16 +39,21 @@ supported_sensors_list = ", ".join(
     required=True,
     help=f"Name of the sensor. Has to be from the supported list ({supported_sensors_list})",
 )
-# @click.option("--generic-asset-id", required=False, help="The asset id of the weather station (you can also give its location).")
+@click.option(
+    "--asset-id",
+    required=False,
+    type=int,
+    help="The asset id of the weather station (you can also give its location).",
+)
 @click.option(
     "--latitude",
-    required=True,
+    required=False,
     type=float,
     help="Latitude of where you want to measure.",
 )
 @click.option(
     "--longitude",
-    required=True,
+    required=False,
     type=float,
     help="Longitude of where you want to measure.",
 )
@@ -69,9 +74,26 @@ def add_weather_sensor(**args):
             f"[FLEXMEASURES-OWM] Please correct the following errors:\n{errors}.\n Use the --help flag to learn more."
         )
         raise click.Abort
+    if args["asset_id"] is not None:
+        weather_station = get_weather_station_by_asset_id(args["asset_id"])
+    elif args["latitude"] is not None and args["longitude"] is not None:
+        weather_station = get_or_create_weather_station(
+            args["latitude"], args["longitude"]
+        )
+    else:
+        raise Exception(
+            "Arguments are missing to register a weather sensor. Provide either '--asset-id' or ('--latitude' and '--longitude')."
+        )
 
-    weather_station = get_or_create_weather_station(args["latitude"], args["longitude"])
-
+    sensor = Sensor.query.filter(
+        Sensor.name == args["name"].lower(),
+        Sensor.generic_asset == weather_station,
+    ).one_or_none()
+    if sensor:
+        click.echo(
+            f"[FLEXMEASURES-OWM] A '{args['name']}' weather sensor already exists at this weather station (the station's ID is {weather_station.id})."
+        )
+        return
     fm_sensor_specs = get_supported_sensor_spec(args["name"])
     fm_sensor_specs["generic_asset"] = weather_station
     fm_sensor_specs["timezone"] = args["timezone"]
@@ -95,11 +117,17 @@ def add_weather_sensor(**args):
 @click.option(
     "--location",
     type=str,
-    required=True,
+    required=False,
     help='Measurement location(s). "latitude,longitude" or "top-left-latitude,top-left-longitude:'
     'bottom-right-latitude,bottom-right-longitude." The first format defines one location to measure.'
     " The second format defines a region of interest with several (>=4) locations"
     ' (see also the "method" and "num_cells" parameters for details on how to use this feature).',
+)
+@click.option(
+    "--asset-id",
+    type=int,
+    required=False,
+    help="ID of a weather station asset - forecasts will be gotten for its location. If present, --location will be ignored.",
 )
 @click.option(
     "--store-in-db/--store-as-json-files",
@@ -125,7 +153,7 @@ def add_weather_sensor(**args):
     help="Name of the region (will create sub-folder if you store json files).",
 )
 @task_with_status_report("get-openweathermap-forecasts")
-def collect_weather_data(location, store_in_db, num_cells, method, region):
+def collect_weather_data(location, asset_id, store_in_db, num_cells, method, region):
     """
     Collect weather forecasts from the OpenWeatherMap API.
     This will be done for one or more locations, for which we first identify relevant weather stations.
@@ -139,7 +167,14 @@ def collect_weather_data(location, store_in_db, num_cells, method, region):
         raise Exception(
             "[FLEXMEASURES-OWM] Setting OPENWEATHERMAP_API_KEY not available."
         )
-    locations = get_locations(location, num_cells, method)
+    if asset_id is not None:
+        locations = [get_location_by_asset_id(asset_id)]
+    elif location is not None:
+        locations = get_locations(location, num_cells, method)
+    else:
+        raise Warning(
+            "[FLEXMEASURES-OWM] Pass either location or asset-id to get weather forecasts."
+        )
 
     # Save the results
     if store_in_db:

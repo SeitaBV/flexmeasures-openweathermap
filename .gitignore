@@ -80,3 +80,5 @@ dmypy.json
 notebooks/.ipynb_checkpoints/
 
 flexmeasures.log
+
+.gitconfig.*

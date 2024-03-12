@@ -1,3 +1,5 @@
+import logging
+
 from flexmeasures.data.models.time_series import TimedBelief
 
 from ..commands import collect_weather_data
@@ -43,10 +45,11 @@ def test_get_weather_forecasts_to_db(
 
 
 def test_get_weather_forecasts_no_close_sensors(
-    app, db, monkeypatch, run_as_cli, add_weather_sensors_fresh_db
+    app, db, monkeypatch, run_as_cli, add_weather_sensors_fresh_db, caplog
 ):
     """
-    Looking for a location too far away from existing weather stations means we fail.
+    Looking for a location too far away from existing weather station.
+    Check we get a warning.
     """
     weather_station = add_weather_sensors_fresh_db["wind"].generic_asset
 
@@ -54,10 +57,13 @@ def test_get_weather_forecasts_no_close_sensors(
     monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
-    result = runner.invoke(
-        collect_weather_data,
-        ["--location", f"{weather_station.latitude-5},{weather_station.longitude}"],
-    )
-    print(result.output)
-    assert "Reported task get-openweathermap-forecasts status as False" in result.output
-    assert "No sufficiently close weather sensor found" in result.output
+    with caplog.at_level(logging.WARNING):
+        result = runner.invoke(
+            collect_weather_data,
+            ["--location", f"{weather_station.latitude-5},{weather_station.longitude}"],
+        )
+        print(result.output)
+        assert (
+            "Reported task get-openweathermap-forecasts status as True" in result.output
+        )
+        assert "no sufficiently close weather sensor found" in caplog.text

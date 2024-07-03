@@ -40,7 +40,7 @@ mapping = [
     dict(
         fm_sensor_name="irradiance",  # in save_forecasts_to_db, we catch this name and do the actual computation to get to the irradiance
         owm_sensor_name="clouds",
-        unit="kW/m²",
+        unit="W/m²",
         event_resolution=timedelta(minutes=60),
         attributes=weather_attributes,
     ),

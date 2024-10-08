@@ -52,7 +52,7 @@ def call_openweatherapi(
 ) -> Tuple[datetime, List[Dict]]:
     """
     Make a single "one-call" to the Open Weather API and return the API timestamp as well as the 48 hourly forecasts.
-    See https://openweathermap.org/api/one-call-api for docs.
+    See https://openweathermap.org/api/one-call-3 for docs.
     Note that the first forecast is about the current hour.
     """
     check_openweathermap_version(API_VERSION)

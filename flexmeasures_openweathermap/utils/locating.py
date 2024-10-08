@@ -83,7 +83,7 @@ def find_weather_sensor_by_location(
 ) -> Sensor | None:
     """
     Try to find a weather sensor of fitting type close by.
-    Complain if the nearest weather sensor is further away than some minimum degrees.
+    Return None if the nearest weather sensor is further away than some minimum degrees or if no sensor was found at all.
     """
     weather_sensor: Optional[Sensor] = Sensor.find_closest(
         generic_asset_type_name=WEATHER_STATION_TYPE_NAME,
@@ -92,22 +92,23 @@ def find_weather_sensor_by_location(
         lng=location[1],
         n=1,
     )
-    if weather_sensor is not None:
-        weather_station: GenericAsset = weather_sensor.generic_asset
-        if abs(
-            location[0] - weather_station.location[0]
-        ) > max_degree_difference_for_nearest_weather_sensor or abs(
-            location[1] - weather_station.location[1]
-            > max_degree_difference_for_nearest_weather_sensor
-        ):
-            current_app.logger.warning(
-                f"[FLEXMEASURES-OWM] We found a weather station, but no sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
-            )
-    else:
+    if weather_sensor is None:
         current_app.logger.warning(
             "[FLEXMEASURES-OWM] No weather sensor set up yet for measuring %s. Try the register-weather-sensor CLI task."
             % sensor_name
         )
+        return None
+    weather_station: GenericAsset = weather_sensor.generic_asset
+    if abs(
+        location[0] - weather_station.location[0]
+    ) > max_degree_difference_for_nearest_weather_sensor or abs(
+        location[1] - weather_station.location[1]
+        > max_degree_difference_for_nearest_weather_sensor
+    ):
+        current_app.logger.warning(
+            f"[FLEXMEASURES-OWM] We found a weather station, but no sufficiently close weather sensor found (within {max_degree_difference_for_nearest_weather_sensor} {flexmeasures_inflection.pluralize('degree', max_degree_difference_for_nearest_weather_sensor)} distance) for measuring {sensor_name}! We're looking for: {location}, closest available: ({weather_station.location})"
+        )
+        return None
     return weather_sensor
 
 

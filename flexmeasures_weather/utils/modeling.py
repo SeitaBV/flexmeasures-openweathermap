@@ -6,9 +6,9 @@ from flexmeasures import Source, __version__ as flexmeasures_version
 from flexmeasures.data import db
 from flexmeasures.data.services.data_sources import get_or_create_source
 
-from flexmeasures_openweathermap import DEFAULT_DATA_SOURCE_NAME
-from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
-from flexmeasures_openweathermap import DEFAULT_WEATHER_STATION_NAME
+from flexmeasures_weather import DEFAULT_DATA_SOURCE_NAME
+from flexmeasures_weather import WEATHER_STATION_TYPE_NAME
+from flexmeasures_weather import DEFAULT_WEATHER_STATION_NAME
 
 
 if version.parse(flexmeasures_version) < version.parse("0.13"):
@@ -18,10 +18,10 @@ else:
 
 
 def get_or_create_owm_data_source() -> Source:
-    """Make sure we have an OWM data source"""
+    """Make sure we have an data source"""
     return get_or_create_source(
         source=current_app.config.get(
-            "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
+            "WEATHER_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
         ),
         source_type=SOURCE_TYPE,
         flush=False,
@@ -30,7 +30,7 @@ def get_or_create_owm_data_source() -> Source:
 
 def get_or_create_owm_data_source_for_derived_data() -> Source:
     owm_source_name = current_app.config.get(
-        "OPENWEATHERMAP_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
+        "WEATHER_DATA_SOURCE_NAME", DEFAULT_DATA_SOURCE_NAME
     )
     return get_or_create_source(
         source=f"FlexMeasures {owm_source_name}",
@@ -79,12 +79,12 @@ def get_weather_station_by_asset_id(asset_id: int) -> GenericAsset:
     ).one_or_none()
     if weather_station is None:
         raise Exception(
-            f"[FLEXMEASURES-OWM] Weather station is not present for the given asset id '{asset_id}'."
+            f"[FLEXMEASURES-WEATHER] Weather station is not present for the given asset id '{asset_id}'."
         )
 
     if weather_station.latitude is None or weather_station.longitude is None:
         raise Exception(
-            f"[FLEXMEASURES-OWM] Weather station {weather_station} is missing location information [Latitude, Longitude]."
+            f"[FLEXMEASURES-WEATHER] Weather station {weather_station} is missing location information [Latitude, Longitude]."
         )
 
     return weather_station

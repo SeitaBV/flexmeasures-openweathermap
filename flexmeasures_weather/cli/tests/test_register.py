@@ -15,7 +15,7 @@ sensor_params = {"name": "wind speed", "latitude": 30, "longitude": 40}
 @pytest.mark.parametrize(
     "invalid_param, invalid_value, expected_msg",
     [
-        ("name", "windd-speed", "not supported by flexmeasures-openweathermap"),
+        ("name", "windd-speed", "not supported by flexmeasures-weather"),
         ("latitude", 93, "less than or equal to 90"),
         ("timezone", "Erope/Amsterdam", "is unknown"),
     ],

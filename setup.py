@@ -23,11 +23,11 @@ def load_requirements(use_case):
 
 
 setup(
-    name="flexmeasures-weather",
-    description="Integrating FlexMeasures with multiple API services",
+    name="flexmeasures-openweathermap",
+    description="Integrating FlexMeasures with OpenWeatherMap",
     author="Seita Energy Flexibility BV",
     author_email="nicolas@seita.nl",
-    url="https://github.com/FlexMeasures/flexmeasures-weather",
+    url="https://github.com/SeitaBV/flexmeasures-openweathermap",
     keywords=["flexmeasures", "energy flexibility"],
     install_requires=load_requirements("app"),
     tests_require=load_requirements("test"),

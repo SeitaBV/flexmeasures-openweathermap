@@ -1,78 +1,21 @@
-# FLEXMEASURES-WEATHER - a plugin for FlexMeasures to integrate multiple Weather API services
-
-### Configuration
-
-This plugin currently supports two Weather API services: [OpenWeatherMap One Call API](https://openweathermap.org/api/one-call-3) and [Weather API](https://www.weatherapi.com/). The configuration is controlled via your FlexMeasures config file.
-
-Add the following entries to your config:
-
-```ini
-# Select the weather provider to use: "OWM" (OpenWeatherMap) or "WAPI" (Weather API)
-WEATHER_PROVIDER = OWM
-
-# API key for the selected weather provider
-WEATHERAPI_KEY = your-api-key-here
-
-# Name to register the weather data source in FlexMeasures. The default is 'Weather'.
-# Examples: "OpenWeatherMap" (for backwards compatibility with the OWM plugin).
-WEATHER_DATA_SOURCE_NAME = 'OpenWeatherMap'
-
-# File path to store weather data in JSON format
-WEATHER_FILE_PATH_LOCATION = /path/to/weather_output.json
-```
-
-### Extending to Other Weather API Services
-
-To expand the plugin's coverage to additional weather API services:
-
-1. **Update the configuration**  
-   Change the `WEATHER_PROVIDER` setting in your config to the identifier for the new API service (e.g., `NEWAPI`), and provide the necessary credentials in `WEATHERAPI_KEY`.
-
-2. **Implement a new API function**  
-   Create a function named in the format:
-
-   ```python
-   def call_NEWAPI_api(...):
-       # Your logic to call the API and return data in the expected format
-   ```
-
-   This function should return data in the same structure as used by the original OpenWeatherMap integration, and **must have at least 48 hours of forecast data from the time of the call**.
-
-3. **Integrate into the plugin**  
-   Modify the `call_api` function in the `weather.py` file to include a conditional branch for the new provider:
-
-   ```python
-   def call_api(...):
-    if provider not in ['OWM', 'WAPI', ..., 'NEWAPI']:
-        raise Exception
-    if provider == 'NEWAPI':
-        return call_NEWAPI_api(...)
-   ```
-
-4. **Finalize and contribute**  
-   Once you've implemented and tested the plugin with your chosen API service:
-   - Update this README to reflect the new configuration and usage details.
-   - Submit a pull request with your changes for review.
-
-> This modular structure allows for seamless integration of additional services while maintaining consistency and clarity in data handling.
-
+# flexmeasures-openweathermap - a plugin for FlexMeasures to integrate OpenWeatherMap data
 
 ## Usage
 
 To register a new weather sensor:
 
-`flexmeasures weather register-weather-sensor --name "wind speed" --latitude 30 --longitude 40`
+`flexmeasures owm register-weather-sensor --name "wind speed" --latitude 30 --longitude 40`
 
 Currently supported: wind speed, temperature & irradiance.
 
 Notes about weather sensor setup: 
 
 - Weather sensors are public. They are accessible by all accounts on a FlexMeasures server. TODO: maybe limit this to a list of account roles.
-- The resolution is one hour. Weather also supports minutely data within the upcoming hour(s), but that is not supported here.
+- The resolution is one hour. OWM also supports minutely data within the upcoming hour(s), but that is not supported here.
 
 To collect weather forecasts:
 
-`flexmeasures weather get-weather-forecasts --location 30,40`
+`flexmeasures owm get-weather-forecasts --location 30,40`
 
 This saves forecasts for your registered sensors in the database.
 
@@ -80,9 +23,9 @@ Use the `--help`` option for more options, e.g. for specifying two locations and
 
 An alternative usage is to save raw results in JSON files (for later processing), like this:
 
-`flexmeasures weather get-weather-forecasts --location 30,40 --store-as-json-files --region somewhere`
+`flexmeasures owm get-weather-forecasts --location 30,40 --store-as-json-files --region somewhere`
 
-This saves the complete response from the Weather Provider in a local folder (i.e. no sensor registration needed, this is a direct way to use Weather, without FlexMeasures integration). `region` will become a subfolder.
+This saves the complete response from OpenWeatherMap in a local folder (i.e. no sensor registration needed, this is a direct way to use OWM, without FlexMeasures integration). `region` will become a subfolder.
  
 Finally, note that currently 1000 free calls per day can be made to the OpenWeatherMap API,
 so you can make a call every 15 minutes for up to 10 locations or every hour for up to 40 locations (or get a paid account).
@@ -94,10 +37,10 @@ To install locally, run
 
     make install
 
-To add as plugin to an existing FlexMeasures system, add "/path/to/FLEXMEASURES-WEATHER/flexmeasures_weather" to your FlexMeasures (>v0.7.0dev8) config file,
+To add as plugin to an existing FlexMeasures system, add "/path/to/flexmeasures-openweathermap/flexmeasures_openweathermap" to your FlexMeasures (>v0.7.0dev8) config file,
 using the FLEXMEASURES_PLUGINS setting (a list).
 
-Alternatively, if you installed this plugin as a package (e.g. via `python setup.py install`, `pip install -e` or `pip install flexmeasures_weather` after this project is on Pypi), then "flexmeasures_weather" suffices.
+Alternatively, if you installed this plugin as a package (e.g. via `python setup.py install`, `pip install -e` or `pip install flexmeasures_openweathermap` after this project is on Pypi), then "flexmeasures_openweathermap" suffices.
 
 
 

@@ -8,7 +8,7 @@ from marshmallow import (
 
 import pytz
 
-from ...utils.owm import get_supported_sensor_spec, get_supported_sensors_str
+from ...utils.weather import get_supported_sensor_spec, get_supported_sensors_str
 
 
 class WeatherSensorSchema(Schema):
@@ -32,7 +32,7 @@ class WeatherSensorSchema(Schema):
         if get_supported_sensor_spec(name):
             return
         raise ValidationError(
-            f"Weather sensors with name '{name}' are not supported by flexmeasures-openweathermap. For now, the following is supported: [{get_supported_sensors_str()}]"
+            f"Weather sensors with name '{name}' are not supported by flexmeasures-weather. For now, the following is supported: [{get_supported_sensors_str()}]"
         )
 
     @validates("timezone")

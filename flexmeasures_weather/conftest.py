@@ -8,7 +8,7 @@ from flexmeasures.conftest import db, fresh_db  # noqa: F401
 from flexmeasures.data.models.generic_assets import GenericAsset, GenericAssetType
 from flexmeasures.data.models.time_series import Sensor
 
-from flexmeasures_openweathermap import WEATHER_STATION_TYPE_NAME
+from flexmeasures_weather import WEATHER_STATION_TYPE_NAME
 
 
 @pytest.fixture(scope="session")
@@ -17,7 +17,7 @@ def app():
 
     # Adding this plugin, making sure the name is known (as last part of plugin path)
     test_app = create_flexmeasures_app(
-        env="testing", plugins=["../flexmeasures_openweathermap"]
+        env="testing", plugins=["../flexmeasures_weather"]
     )
 
     # Establish an application context before running the tests.

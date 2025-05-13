@@ -2,7 +2,7 @@ __version__ = "Unknown version"
 
 
 """
-The __init__ for the flexmeasures-openweathermap FlexMeasures plugin.
+The __init__ for the flexmeasures-weather FlexMeasures plugin.
 
 FlexMeasures registers the BluePrint objects it finds in here.
 """
@@ -19,46 +19,50 @@ from .utils.blueprinting import ensure_bp_routes_are_loaded_fresh
 # This uses importlib.metadata behaviour added in Python 3.8.
 # Note that we rely on git tags (via setuptools_scm) to define that version.
 try:
-    __version__ = version("flexmeasures_openweathermap")
+    __version__ = version("flexmeasures_weather")
 except PackageNotFoundError:
     # package is not installed
     pass
 
 
 DEFAULT_FILE_PATH_LOCATION = "weather-forecasts"
-DEFAULT_DATA_SOURCE_NAME = "OpenWeatherMap"
-DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-OWM)"
+DEFAULT_DATA_SOURCE_NAME = "Weather"
+DEFAULT_WEATHER_STATION_NAME = "weather station (created by FM-Weather)"
 WEATHER_STATION_TYPE_NAME = "weather station"
 DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE = 1
 
 __version__ = "0.1"
 __settings__ = {
-    "OPENWEATHERMAP_API_KEY": dict(
-        description="You can generate this token after you made an account at OpenWeatherMap.",
-        level="error",
-    ),
-    "OPENWEATHERMAP_FILE_PATH_LOCATION": dict(
+    "WEATHER_FILE_PATH_LOCATION": dict(
         description="Location of JSON files (if you store weather data in this form). Absolute path.",
         level="debug",
     ),
-    "OPENWEATHERMAP_DATA_SOURCE_NAME": dict(
-        description=f"Name of the data source for OWM data, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
+    "WEATHER_DATA_SOURCE_NAME": dict(
+        description=f"Name of the data source for Weather data, defaults to '{DEFAULT_DATA_SOURCE_NAME}'",
         level="debug",
     ),
     "WEATHER_STATION_NAME": dict(
         description=f"Name of the weather station asset, defaults to '{DEFAULT_WEATHER_STATION_NAME}'",
         level="debug",
     ),
-    "OPENWEATHERMAP_MAXIMAL_DEGREE_LOCATION_DISTANCE": dict(
+    "WEATHER_MAXIMAL_DEGREE_LOCATION_DISTANCE": dict(
         descripion=f"Maximum distance (in degrees latitude & longitude) for weather stations from forecast location, defaults to {DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE}",
         level="debug",
+    ),
+    "WEATHER_PROVIDER": dict(
+        description="Provider for weather data. Permissible options are 'OWM' (OpenWeatherMap) or 'WAPI' (WeatherAPI).",
+        level="error",
+    ),
+    "WEATHERAPI_KEY": dict(
+        description="API key for OWM or WAPI, whatever you have chosen.",
+        level="error",
     ),
 }
 
 # CLI
-flexmeasures_openweathermap_bp: Blueprint = Blueprint(
-    "flexmeasures-openweathermap CLI", __name__, cli_group="owm"
+flexmeasures_weather_bp: Blueprint = Blueprint(
+    "flexmeasures-weather CLI", __name__, cli_group="weather"
 )
-flexmeasures_openweathermap_bp.cli.help = "flexmeasures-openweathermap CLI commands"
+flexmeasures_weather_bp.cli.help = "flexmeasures-weather CLI commands"
 ensure_bp_routes_are_loaded_fresh("cli.commands")
-from flexmeasures_openweathermap.cli import commands  # noqa: E402,F401
+from flexmeasures_weather.cli import commands  # noqa: E402,F401

@@ -1,6 +1,6 @@
 # Note: use tabs
 # actions which are virtual, i.e. not a script
-.PHONY: install install-for-dev install-deps install-flexmeasures-openweathermap test freeze-deps upgrade-deps
+.PHONY: install install-for-dev install-deps install-flexmeasures-weather test freeze-deps upgrade-deps
 
 
 # ---- Development ---
@@ -11,12 +11,12 @@ test:
 
 # ---- Installation ---
 
-install: install-deps install-flexmeasures-openweathermap
+install: install-deps install-flexmeasures-weather
 
 install-for-dev:
 	make freeze-deps
 	pip-sync requirements/app.txt requirements/dev.txt requirements/test.txt
-	make install-flexmeasures-openweathermap
+	make install-flexmeasures-weather
 	pre-commit install
 
 install-deps:
@@ -24,7 +24,7 @@ install-deps:
 	make freeze-deps
 	pip-sync requirements/app.txt
 
-install-flexmeasures-openweathermap:
+install-flexmeasures-weather:
 	python setup.py develop
 
 install-pip-tools:

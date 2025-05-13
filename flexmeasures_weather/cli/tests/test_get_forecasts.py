@@ -3,7 +3,7 @@ import logging
 from flexmeasures.data.models.time_series import TimedBelief
 
 from ..commands import collect_weather_data
-from ...utils import owm
+from ...utils import weather
 from .utils import mock_owm_response
 
 
@@ -23,8 +23,8 @@ def test_get_weather_forecasts_to_db(
     wind_sensor_id = wind_sensor.id
     weather_station = wind_sensor.generic_asset
 
-    monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
-    monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
+    monkeypatch.setitem(app.config, "WEATHERAPI_KEY", "dummy")
+    monkeypatch.setattr(weather, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
     result = runner.invoke(
@@ -32,7 +32,7 @@ def test_get_weather_forecasts_to_db(
         ["--location", f"{weather_station.latitude},{weather_station.longitude}"],
     )
     print(result.output)
-    assert "Reported task get-openweathermap-forecasts status as True" in result.output
+    assert "Reported task get-weather-forecasts status as True" in result.output
 
     beliefs = (
         fresh_db.session.query(TimedBelief)
@@ -53,8 +53,8 @@ def test_get_weather_forecasts_no_close_sensors(
     """
     weather_station = add_weather_sensors_fresh_db["wind"].generic_asset
 
-    monkeypatch.setitem(app.config, "OPENWEATHERMAP_API_KEY", "dummy")
-    monkeypatch.setattr(owm, "call_openweatherapi", mock_owm_response)
+    monkeypatch.setitem(app.config, "WEATHERAPI_KEY", "dummy")
+    monkeypatch.setattr(weather, "call_openweatherapi", mock_owm_response)
 
     runner = app.test_cli_runner()
     with caplog.at_level(logging.WARNING):
@@ -64,6 +64,6 @@ def test_get_weather_forecasts_no_close_sensors(
         )
         print(result.output)
         assert (
-            "Reported task get-openweathermap-forecasts status as True" in result.output
+            "Reported task get-weather-forecasts status as True" in result.output
         )
         assert "no sufficiently close weather sensor found" in caplog.text

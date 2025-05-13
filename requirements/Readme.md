@@ -1,6 +1,6 @@
 # Requirements
 
-All requirements for flexmeasures-flexmeasures-openweathermap are specified in this directory.
+All requirements for flexmeasures-flexmeasures-weather are specified in this directory.
 We separate by use case:
 
 - app: All requirements for running the plugin

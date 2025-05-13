@@ -17,6 +17,6 @@ def ensure_bp_routes_are_loaded_fresh(module_name):
     Re-importing helps to get this order right when FlexMeasures reads the
     plugin's __init__.
     """
-    m_name = "flexmeasures_openweathermap." + module_name
+    m_name = "flexmeasures_weather." + module_name
     if m_name in sys.modules:
         importlib.reload(sys.modules[m_name])

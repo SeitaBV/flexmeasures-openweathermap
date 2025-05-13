@@ -1,7 +1,7 @@
 from flexmeasures import Asset
 
-from flexmeasures_openweathermap import DEFAULT_WEATHER_STATION_NAME
-from flexmeasures_openweathermap.utils.modeling import get_or_create_weather_station
+from flexmeasures_weather import DEFAULT_WEATHER_STATION_NAME
+from flexmeasures_weather.utils.modeling import get_or_create_weather_station
 
 
 def test_creating_two_weather_stations(fresh_db):

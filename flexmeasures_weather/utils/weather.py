@@ -14,7 +14,7 @@ from flexmeasures.utils.time_utils import as_server_time, get_timezone, server_n
 from flexmeasures.data.models.time_series import Sensor, TimedBelief
 from flexmeasures.data.utils import save_to_db
 
-from flexmeasures_openweathermap import DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE
+from flexmeasures_weather import DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE
 from .locating import find_weather_sensor_by_location
 from ..sensor_specs import mapping
 from .modeling import (
@@ -22,7 +22,7 @@ from .modeling import (
     get_or_create_owm_data_source_for_derived_data,
 )
 from .radiating import compute_irradiance
-
+from zoneinfo import ZoneInfo
 
 API_VERSION = "3.0"
 
@@ -45,6 +45,45 @@ def get_supported_sensors_str() -> str:
             for sensor_specs in mapping
         ]
     )
+
+
+def process_weatherapi_data(data, hour_no):
+    first_day = data[0]['hour']
+    second_day = data[1]['hour']
+    third_day = data[2]['hour']
+    combined = first_day + second_day + third_day
+    
+    relevant = combined[hour_no: hour_no + 48]
+    # relevant = combined
+    
+    def map_weather_api_to_owm(weather_api_data):
+        game = {
+            "dt": weather_api_data["time_epoch"],
+            "temp": weather_api_data["temp_c"],
+            "feels_like": weather_api_data["feelslike_c"],
+            "pressure": weather_api_data["pressure_mb"],
+            "humidity": weather_api_data["humidity"],
+            "dew_point": weather_api_data["dewpoint_c"],
+            "uvi": weather_api_data["uv"],
+            "clouds": weather_api_data["cloud"],
+            "visibility": weather_api_data["vis_km"] * 1000,
+            "wind_speed": weather_api_data["wind_kph"] / 3.6,
+            "wind_deg": weather_api_data["wind_degree"],
+            "wind_gust": weather_api_data["gust_kph"] / 3.6,
+            "weather": [
+                {
+                    "id": weather_api_data["condition"]["code"],
+                    "main": weather_api_data["condition"]["text"].split()[0],
+                    "description": weather_api_data["condition"]["text"],
+                    "icon": weather_api_data["condition"]["icon"],
+                }
+            ],
+            "pop": weather_api_data["chance_of_rain"] / 100,
+        }
+        return game
+    
+    converted = [map_weather_api_to_owm(hour) for hour in relevant]
+    return converted
 
 
 def call_openweatherapi(
@@ -70,18 +109,69 @@ def call_openweatherapi(
     return time_of_api_call, data["hourly"]
 
 
+def call_weatherapi(  
+    api_key: str,
+    location: Tuple[float, float],
+    days: int = 3
+) -> Tuple[datetime, List[Dict]]:
+    """
+    Make a single call to the Weather API and return the API timestamp as well as the 48 hourly forecasts.
+    See https://www.weatherapi.com/docs/ for docs.
+    Note that the first forecast is about the current hour.
+    """
+    
+    latitude, longitude = location[0], location[1]
+    
+    query_str = f"http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={latitude},{longitude}&days={days}&aqi=yes&alerts=yes"
+    res = requests.get(query_str)
+    
+    assert (
+        res.status_code == 200
+    ), f"Weather API returned status code {res.status_code}: {res.text}"
+    
+    data = res.json()
+    
+    # get the time of the api call
+    time_of_call = int(data['location']['localtime_epoch'])
+    local_timezone = ZoneInfo(data['location']['tz_id'])
+    local_time = datetime.fromtimestamp(time_of_call, local_timezone)
+    time_of_api_call = as_server_time(local_time)
+    time_of_api_call = time_of_api_call.replace(second=0, microsecond=0)
+    
+    print(f"Time of API call in WAPI is {time_of_api_call}")
+    
+    relevant = data['forecast']['forecastday']
+    hour_no = local_time.hour
+    
+    hourly = process_weatherapi_data(relevant, hour_no)
+    return time_of_api_call, hourly
+
+
+def call_api(api_key, location):
+    provider = str(current_app.config.get("WEATHER_PROVIDER", ""))
+    if provider not in ['OWM', 'WAPI']:
+        raise Exception("Invalid provider name. Please set WEATHER_PROVIDER setting in config file to either OWM or WAPI, the two permissible options.")
+    
+    if provider == 'OWM':
+        click.secho("Calling Open Weather Map")
+        return call_openweatherapi(api_key, location)
+    else:
+        click.secho("Calling Weather API")
+        return call_weatherapi(api_key, location)
+
+
 def save_forecasts_in_db(
     api_key: str,
     locations: List[Tuple[float, float]],
 ):
-    """Process the response from OpenWeatherMap API into timed beliefs.
+    """Process the response from Weather Provider API into timed beliefs.
     Collects all forecasts for all locations and all sensors at all locations, then bulk-saves them.
     """
-    click.echo("[FLEXMEASURES-OWM] Getting weather forecasts:")
-    click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
-    click.echo("[FLEXMEASURES-OWM] -----------------------")
+    click.echo("[FLEXMEASURES-WEATHER] Getting weather forecasts:")
+    click.echo("[FLEXMEASURES-WEATHER] Latitude, Longitude")
+    click.echo("[FLEXMEASURES-WEATHER] -----------------------")
     max_degree_difference_for_nearest_weather_sensor = current_app.config.get(
-        "OPENWEATHERMAP_MAXIMAL_DEGREE_LOCATION_DISTANCE",
+        "WEATHER_MAXIMAL_DEGREE_LOCATION_DISTANCE",
         DEFAULT_MAXIMAL_DEGREE_LOCATION_DISTANCE,
     )
     for location in locations:
@@ -92,14 +182,14 @@ def save_forecasts_in_db(
         db_forecasts: Dict[Sensor, List[TimedBelief]] = {}  # collect beliefs per sensor
 
         now = server_now()
-        owm_time_of_api_call, forecasts = call_openweatherapi(api_key, location)
-        diff_fm_owm = now - owm_time_of_api_call
+        time_of_api_call, forecasts = call_api(api_key, location)
+        diff_fm_owm = now - time_of_api_call
         if abs(diff_fm_owm) > timedelta(minutes=10):
             click.echo(
-                f"[FLEXMEASURES-OWM] Warning: difference between this server and OWM is {naturaldelta(diff_fm_owm)}"
+                f"[FLEXMEASURES-WEATHER] Warning: difference between this server and Weather Provider is {naturaldelta(diff_fm_owm)}"
             )
         click.echo(
-            f"[FLEXMEASURES-OWM] Called OpenWeatherMap API successfully at {now}."
+            f"[FLEXMEASURES-WEATHER] Called OpenWeatherMap API successfully at {now}."
         )
 
         # loop through forecasts, including the one of current hour (horizon 0)
@@ -107,11 +197,11 @@ def save_forecasts_in_db(
             fc_datetime = as_server_time(
                 datetime.fromtimestamp(fc["dt"], get_timezone())
             )
-            click.echo(f"[FLEXMEASURES-OWM] Processing forecast for {fc_datetime} ...")
+            click.echo(f"[FLEXMEASURES-WEATHER] Processing forecast for {fc_datetime} ...")
             data_source = get_or_create_owm_data_source()
             for sensor_specs in mapping:
                 sensor_name = str(sensor_specs["fm_sensor_name"])
-                owm_response_label = sensor_specs["owm_sensor_name"]
+                owm_response_label = sensor_specs["weather_sensor_name"]
                 if owm_response_label in fc:
                     weather_sensor = get_weather_sensor(
                         sensor_specs,
@@ -128,13 +218,13 @@ def save_forecasts_in_db(
 
                         fc_value = fc[owm_response_label]
 
-                        # the irradiance is not available in OWM -> we compute it ourselves
+                        # the irradiance is not available in Provider -> we compute it ourselves
                         if sensor_name == "irradiance":
                             fc_value = compute_irradiance(
                                 location[0],
                                 location[1],
                                 fc_datetime,
-                                # OWM sends cloud cover in percent, we need a ratio
+                                # Provider sends cloud cover in percent, we need a ratio
                                 fc_value / 100.0,
                             )
                             data_source = (
@@ -156,10 +246,10 @@ def save_forecasts_in_db(
                         owm_response_label,
                         fc_datetime,
                     )
-                    click.echo("[FLEXMEASURES-OWM] %s" % msg)
+                    click.echo("[FLEXMEASURES-WEATHER] %s" % msg)
                     current_app.logger.warning(msg)
     for sensor in db_forecasts.keys():
-        click.echo(f"[FLEXMEASURES-OWM] Saving {sensor.name} forecasts ...")
+        click.echo(f"[FLEXMEASURES-WEATHER] Saving {sensor.name} forecasts ...")
         if len(db_forecasts[sensor]) == 0:
             # This is probably a serious problem
             raise Exception(
@@ -168,11 +258,11 @@ def save_forecasts_in_db(
         status = save_to_db(BeliefsDataFrame(db_forecasts[sensor]))
         if status == "success_but_nothing_new":
             current_app.logger.info(
-                "[FLEXMEASURES-OWM] Done. These beliefs had already been saved before."
+                "[FLEXMEASURES-WEATHER] Done. These beliefs had already been saved before."
             )
         elif status == "success_with_unchanged_beliefs_skipped":
             current_app.logger.info(
-                "[FLEXMEASURES-OWM] Done. Some beliefs had already been saved before."
+                "[FLEXMEASURES-WEATHER] Done. Some beliefs had already been saved before."
             )
 
 
@@ -198,7 +288,7 @@ def get_weather_sensor(
         and weather_sensor.event_resolution != sensor_specs["event_resolution"]
     ):
         raise Exception(
-            f"[FLEXMEASURES-OWM] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
+            f"[FLEXMEASURES-WEATHER] The weather sensor found for {sensor_name} has an unfitting event resolution (should be {sensor_specs['event_resolution']}, but is {weather_sensor.event_resolution}."
         )
     return weather_sensor
 
@@ -207,22 +297,22 @@ def save_forecasts_as_json(
     api_key: str, locations: List[Tuple[float, float]], data_path: str
 ):
     """Get forecasts, then store each as a raw JSON file, for later processing."""
-    click.echo("[FLEXMEASURES-OWM] Getting weather forecasts:")
-    click.echo("[FLEXMEASURES-OWM] Latitude, Longitude")
-    click.echo("[FLEXMEASURES-OWM] ----------------------")
+    click.echo("[FLEXMEASURES-WEATHER] Getting weather forecasts:")
+    click.echo("[FLEXMEASURES-WEATHER] Latitude, Longitude")
+    click.echo("[FLEXMEASURES-WEATHER] ----------------------")
     for location in locations:
-        click.echo("[FLEXMEASURES-OWM] %s, %s" % location)
+        click.echo("[FLEXMEASURES-WEATHER] %s, %s" % location)
         now = server_now()
-        owm_time_of_api_call, forecasts = call_openweatherapi(api_key, location)
-        diff_fm_owm = now - owm_time_of_api_call
+        time_of_api_call, forecasts = call_api(api_key, location)
+        diff_fm_owm = now - time_of_api_call
         if abs(diff_fm_owm) > timedelta(minutes=10):
             click.echo(
-                f"[FLEXMEASURES-OWM] Warning: difference between this server and OWM is {naturaldelta(diff_fm_owm)}"
+                f"[FLEXMEASURES-WEATHER] Warning: difference between this server and Weather Provider is {naturaldelta(diff_fm_owm)}"
             )
         now_str = now.strftime("%Y-%m-%dT%H-%M-%S")
         path_to_files = os.path.join(data_path, now_str)
         if not os.path.exists(path_to_files):
-            click.echo(f"[FLEXMEASURES-OWM] Making directory: {path_to_files} ...")
+            click.echo(f"[FLEXMEASURES-WEATHER] Making directory: {path_to_files} ...")
             os.mkdir(path_to_files)
         forecasts_file = "%s/forecast_lat_%s_lng_%s.json" % (
             path_to_files,

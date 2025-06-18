@@ -1,5 +1,7 @@
 # flexmeasures-openweathermap - a plugin for FlexMeasures to integrate OpenWeatherMap data
 
+**ARCHIVED - this repo has moved to https://github.com/FlexMeasures/flexmeasures-weather** (and supports more than one weather forecasting service now)
+
 ## Usage
 
 To register a new weather sensor:
